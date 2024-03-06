@@ -53,24 +53,28 @@ For `aarch64` hosts or for quickly testing a pull request it is easier to use [G
 
 #### Prerequisites
 
+Most existing build scripts rely on that you have Docker installed.
+Some scripts also assumes that you use Ubuntu 22.04 as development environment,
+by for example building binaries locally and then copying to a docker environment based on Ubuntu 22.04.
+Conan config is setup to verify gcc-version against configuration in `toolchains`.
+
 1. Install and configure (if needed) local authentication proxy e.g. CNTLM or Px
 1. Install and configure docker: [Get Docker](https://docs.docker.com/get-docker/)
-1. Build base development docker. Go to the top-level of the repo
 
-    ``` bash
-    cd ..
-    docker build -t oci_kuksa-val-services-ci:latest -f tools/Dockerfile .
-    # NOTE: If you need to cross compile for different arch:
-    DOCKER_BUILDKIT=1 docker buildx build --platform linux/arm64 -t oci_kuksa-val-services-ci:arm64 -f tools/Dockerfile --load .
-    ```
+Some hints if you want to update to a different environment and not change overall architecture
+
+1. Select the new Debian version to use
+2. Update base-image accordingly in all Dockerfile and in repo `.github/workflows` for seat service.
+3. Check default `gcc`version in that Ubuntu version and update version in files in `toolchains`.
 
 #### Usage on CLI
 
 **NOTE:** Building Seat Service on `aarch64` host is not supported at the moment.
 
-##### Building on Ubuntu 20.04
+##### Building on Ubuntu 22.04
 
-You can use dedicated build docker script [docker-build.sh](./docker-build.sh) if host environment matches target (Ubuntu 20.04):
+You can use dedicated build docker script [docker-build.sh](./docker-build.sh) if host environment matches target (Ubuntu 20.04).
+Note that you may need to install dependencies - use [.devcontainer/Dockerfile](.devcontainer/Dockerfile) as reference.
 
 ``` bash
 # Linux: [Ubuntu 20.04]
@@ -88,39 +92,58 @@ TARGETS:
   x86_64|amd64, aarch64|amd64    Target arch to build for, if not set - defaults to multiarch
 ```
 
-#### Building in DevContainer
+##### Creating Docker container for build
 
 If you are using different distro / version, you may use the devcontainer to compile seat service binaries.
-
-From the checked-out git folder, to enter a shell execute:
+First build the Docker container
 
 ``` bash
+$ cd seat_service/.devcontainer
+$ docker build -f Dockerfile -t seat_service_env:latest .
+```
+
+From the seat_service folder, use Docker like below where `<build-command>`is the command you intend to run
+
+``` bash
+cd seat_service
+
 # Linux: [x86_64, any version]
-docker run --rm -it -v $(pwd):/workspace oci_kuksa-val-services-ci:latest <build-command>
+docker run --rm -it -v $(pwd):/workspace seat_service_env:latest <build-command>
 
 # Windows (cmd)
-docker run --rm -it -v %cd%:/workspace oci_kuksa-val-services-ci:latest <build-command>
+docker run --rm -it -v %cd%:/workspace seat_service_env:latest <build-command>
 
 # Windows (Powershell)
-docker run --rm -it -v ${PWD}:/workspace oci_kuksa-val-services-ci:latest <build-command>
+docker run --rm -it -v ${PWD}:/workspace seat_service_env:latest <build-command>
 ```
 
 ##### Build Seat Service binaries
 
-Building the seat service via dev container must be triggered from the project root folder (seat service is referencing kuksa_data_broker/proto), e.g.:
+Building the seat service via dev container must be triggered from the seat_service root folder, e.g.:
 
 ``` bash
 # Linux
 
-# Cleanup any build artifacts
-rm -rf seat_service/bin_vservice-seat_*.tar.gz seat_service/target/
+cd seat_service
 
-# Generate seat_service/bin_vservice-seat_*.tar.gz files for packing seat service container
-docker run --rm -it -v $(pwd):/workspace oci_kuksa-val-services-ci:latest /bin/bash -c \
-  "cd seat_service/; ./build-release.sh --pack"
+# Cleanup any build artifacts
+rm -rf bin_vservice-seat_*.tar.gz target/
+
+# Generate bin_vservice-seat_*.tar.gz files for packing seat service container
+docker run --rm -it -v $(pwd):/workspace seat_service_env:latest /bin/bash -c \
+  "./build-release.sh --pack"
 
 # Check if release package is build
-ls -la seat_service/bin_vservice-seat_*.tar.gz
+ls -la bin_vservice-seat_*.tar.gz
+```
+
+It shall now be possible to start the service
+
+``` bash
+$ docker run --rm -it -v $(pwd):/workspace seat_service_env:latest target/x86_64/release/install/bin/seat_service
+Usage: target/x86_64/release/install/bin/seat_service CAN_IF_NAME [LISTEN_ADDRESS [PORT]]
+
+Environment: SEAT_DEBUG=1 to enable SeatDataFeeder dumps
 ```
 
 ##### Build Seat Service container
@@ -129,17 +152,27 @@ Build the container using pre-built binaries: `seat_service/bin_vservice-seat_*.
 
 ``` bash
 # Linux
-docker build -t seat_service -f seat_service/Dockerfile .
+ce seat_service
+docker build -t seat_service -f Dockerfile .
 ```
 
 ### Usage in Visual Studio Code
 
-It is also possible to open the repo as a remote container in VScode using the approach [Developing inside a Container](https://code.visualstudio.com/docs/remote/containers).
+It is also possible to open the seat_service directory as a remote container in VScode using the approach
+[Developing inside a Container](https://code.visualstudio.com/docs/remote/containers).
 All needed tools for VScode are automatically installed in this case
 
 1. Install VScode extension with ID  ```ms-vscode-remote.remote-containers```
 1. Hit `F1` and type `Remote-Containers: Reopen in Container`
 
+
+``` bash
+root@aeefe5ca40f5:/workspaces/incubation3/seat_service# ./build-release.sh
+root@aeefe5ca40f5:/workspaces/incubation3/seat_service# target/x86_64/release/install/bin/seat_service 
+Usage: target/x86_64/release/install/bin/seat_service CAN_IF_NAME [LISTEN_ADDRESS [PORT]]
+
+Environment: SEAT_DEBUG=1 to enable SeatDataFeeder dumps
+```
 ## Configuration
 
 ### Command line arguments
@@ -208,3 +241,52 @@ check [SeatController README](./src/lib/seat_adjuster/seat_controller/README.md)
 
 - The output will be stored to ``./docs/out``. You can watch the documentation with open the following file in the browser:
   `./docs/doxygen/out/html/index.html`
+
+## KUKSA.val and VSS version dependency
+
+The service examples and related tests in this repository use VSS signals. VSS signals may change over time,
+and backward incompatible changes may be introduced as part of major releases.
+Some of the tests in this repository relies on using latest version
+of [KUKSA.val Databroker](https://github.com/eclipse/kuksa.val/pkgs/container/kuksa.val%2Fdatabroker) and
+[KUKSA CAN Provider](https://github.com/eclipse-kuksa/kuksa-can-provider).
+Some code in the repository (like [Proto](proto) definitions)
+have been copied from [KUKSA.val](https://github.com/eclipse/kuksa.val).
+
+This means that regressions may occur when KUKSA.val or KUKSA.val Feeders are updated. The intention for other KUKSA.val
+repositories is to use the latest official VSS release as default. There is a script for manual updating of KUKSA.val proto files:
+[update-protobuf.sh](./integration_test/update-protobuf.sh).
+
+```bash
+cd integration_test/
+./update-protobuf.sh --force
+```
+
+Seat Service currently supports 2 modes: (VSS 3.X and 4.0).
+As part of VSS 4.0 the instance scheme for seat positions was changed to be based on
+`DriverSide/Middle/PassengerSide` rather than `Pos1, Pos2, Pos3`.
+
+By default Seat Service uses VSS 4.0 seat position, but for older dependencies it can be changed to
+VSS 3.X compatible by setting Environment variable `VSS=3` for seat service container / cmdline.
+
+### Known locations where an explicit VSS or KUKSA.val version is mentioned
+
+- In [integration_test.yml](./.github/workflows/integration_test.yml)
+Uncomment the following line to force VSS 3.X version support in databroker.
+`# KDB_OPT: "--vss vss_release_3.1.1.json"`
+
+- In [run-databroker.sh](./.vscode/scripts/run-databroker.sh)
+The script gets both VSS3 and 4 json files from KUKSA.val master and starts databroker with the correct version, based on environment variable `USE_VSS3=1`:
+
+    ```bash
+    wget -q "https://raw.githubusercontent.com/eclipse/kuksa.val/master/data/vss-core/vss_release_3.0.json" -O "$DATABROKER_BINARY_PATH/vss3.json"
+    wget -q "https://raw.githubusercontent.com/eclipse/kuksa.val/master/data/vss-core/vss_release_4.0.json" -O "$DATABROKER_BINARY_PATH/vss4.json"
+    ```
+
+- In [prerequisite_settings.json](./prerequisite_settings.json)
+hardcoded versions are mentioned for KUKSA.val Databroker, KUKSA.val DBC Feeder and KUKSA.val Client.
+
+- In [test_val_seat.py](./integration_test/test_val_seat.py). Tests for proper seat position datapoint, according to environment variable `USE_VSS3`.
+
+- In Seat Service [main.cc](./seat_service/src/bin/seat_service/main.cc): 2 different Datapoint sets are registered, based on environment variable `VSS` (`3` or `4`).
+
+**NOTE:** Above mentioned locations should be checked for breaking VSS changes on master.

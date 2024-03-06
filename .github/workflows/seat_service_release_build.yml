@@ -21,7 +21,7 @@ on:
 jobs:
   build:
     # reduce runtime requirements from libc/libc++
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     name: Build
     strategy:
       matrix:
@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          .github/workflows/scripts/install-ci-tooling.sh
+          .github/workflows/scripts/seat-install-ci-tooling.sh
 
       - name: Run build
         working-directory: ${{github.workspace}}/seat_service
@@ -52,7 +52,7 @@ jobs:
           target/${{ matrix.target-arch }}/release/licenses/ \
           proto/
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bin_vservice-seat_${{ matrix.target-arch }}_release.tar.gz
           path: ${{github.workspace}}/seat_service/bin_vservice-seat_${{ matrix.target-arch }}_release.tar.gz

@@ -21,10 +21,6 @@ on:
         required: true
         default: "0.0.0"
 
-  push:
-    tags:
-      - "v*.*.*"
-
 # Needed if GITHUB_TOKEN by default do not have right to create release
 permissions:
   contents: write
@@ -67,7 +63,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: bin/
 
@@ -82,4 +78,3 @@ jobs:
           files: |
             bin/**
             LICENSE
-            NOTICE.md

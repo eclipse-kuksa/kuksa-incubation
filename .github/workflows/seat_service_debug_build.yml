@@ -21,10 +21,14 @@ on:
       - "kuksa_data_broker/proto/**"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   build:
     # reduce runtime requirements from libc/libc++
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     name: Build
     strategy:
       matrix:
@@ -42,14 +46,14 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          .github/workflows/scripts/install-ci-tooling.sh
+          .github/workflows/scripts/seat-install-ci-tooling.sh
 
       - name: Run build
         working-directory: ${{github.workspace}}/seat_service
         run: ./build-debug.sh ${{ matrix.target-arch }}
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bin_vservice-seat_${{ matrix.target-arch }}_debug
           path: |
@@ -63,7 +67,7 @@ jobs:
 
       - name: Upload Test results (x86_64)
         if: ${{ matrix.target-arch == 'x86_64' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: report_test_vservice-seat
           path: |

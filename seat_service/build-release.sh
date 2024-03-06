@@ -15,7 +15,9 @@
 # Specify:
 #   first argument: TARGET_ARCH = "x86_64" or "aarch64"; default: "x86_64"
 #   second argument: TARGET_ARCH = "<string>; default: "$SCRIPT_DIR/target/$TARGET_ARCH/release"
-
+#
+# Note: Build failures may occur if this script is run on a target with "wrong" gcc-version
+#
 # shellcheck disable=SC2086
 # shellcheck disable=SC2230
 # shellcheck disable=SC2046
@@ -121,7 +123,6 @@ if [ "$PACK" = "1" ]; then
 	mkdir -p "$ARCHIVE_PATH"
 
 	echo "# Copy all proto files in ./proto/"
-	cp -ra "$SCRIPT_DIR/../proto" .
 	cp -ra "$SCRIPT_DIR/proto" .
 	cp -ra "$BUILD_DIR/." "$ARCHIVE_PATH"
 

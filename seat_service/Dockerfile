@@ -12,13 +12,13 @@
 # ********************************************************************************/
 
 # DO NOT UPDATE ubuntu version, it must match the image used for building seat_service/bin_vservice-seat_*_release.*
-FROM --platform=$BUILDPLATFORM ubuntu:20.04 as builder
+FROM --platform=$BUILDPLATFORM ubuntu:latest as builder
 
 ARG TARGETPLATFORM
 
 WORKDIR /workspace
 
-COPY seat_service/bin_vservice-seat_*_release.* /workspace
+COPY bin_vservice-seat_*_release.* /workspace
 
 # FIXME! Binaries are built from another base image, potentially incompatible with ubuntu:latest image
 # RUN tar -xf bin_vservice-seat_x86_64_release.tar.gz && tar -xf bin_vservice-seat_aarch64_release.tar.gz
@@ -27,7 +27,7 @@ RUN if [ "$TARGETPLATFORM" = "linux/amd64" ] ; \
     then tar -xf bin_vservice-seat_x86_64_release.tar.gz && cp -rv ./target/x86_64/release/install/ ./bins; \
     else tar -xf bin_vservice-seat_aarch64_release.tar.gz && cp -rv ./target/aarch64/release/install/ ./bins; fi
 
-FROM --platform=$TARGETPLATFORM ubuntu:20.04 as runtime
+FROM --platform=$TARGETPLATFORM ubuntu:latest as runtime
 
 LABEL org.opencontainers.image.description "VAL Seat Service container, providing VSC Seat impl and supporting simulated/real can ECU"
 

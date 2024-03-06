@@ -1,0 +1,22 @@
+{
+  "name": "oci_kuksa-val-services-dev",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "runArgs": ["--init", "--privileged"],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "http.proxyStrictSSL": false
+      },
+      "extensions": [
+        "yzhang.markdown-all-in-one",
+        "arturock.gitstash",
+        "eamodio.gitlens",
+        "streetsidesoftware.code-spell-checker",
+        "twxs.cmake"
+      ]
+    }
+  }
+}

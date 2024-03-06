@@ -21,10 +21,14 @@ on:
   workflow_call:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   build:
     # reduce runtime requirements from libc/libc++
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: Build docu
 
     steps:
@@ -36,7 +40,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          .github/workflows/scripts/install-ci-tooling.sh
+          .github/workflows/scripts/seat-install-ci-tooling.sh
 
       - name: Build docu
         working-directory: ${{github.workspace}}/seat_service
@@ -50,7 +54,7 @@ jobs:
           docs/doxygen/out/html/
 
       - name: Upload docu
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: docu_vservice-seat
           path: ${{github.workspace}}/seat_service/docu_vservice-seat.tar.gz

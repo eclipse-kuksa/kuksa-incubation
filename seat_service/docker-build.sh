@@ -15,6 +15,8 @@
 # shellcheck disable=SC2086
 # shellcheck disable=SC2230
 
+# Note: Build failures may occur if this script is run on a target with "wrong" gcc-version
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONTEXT_DIR="$SCRIPT_DIR/.."
 # name of docker image: ${DOCKER_ARCH)/${DOCKER_IMAGE}
@@ -117,7 +119,7 @@ if [ "$DOCKER_ARCH" = "multiarch" ]; then
 else
 	if [ $LOCAL -eq 1 ]; then
 		DOCKER_ARGS="--load -t $DOCKER_ARCH/$DOCKER_IMAGE"
-		DOCKER_EXPORT="($DOCKER_ARCH/$DOCKER_IMAGE ghcr.io/eclipse/kuksa.val.services/$DOCKER_IMAGE:prerelease)"
+		DOCKER_EXPORT="($DOCKER_ARCH/$DOCKER_IMAGE ghcr.io/eclipse-kuksa/kuksa-incubation/$DOCKER_IMAGE:prerelease)"
 	else
 		DOCKER_ARGS="--platform linux/$DOCKER_ARCH -t $DOCKER_ARCH/$DOCKER_IMAGE --output type=oci,dest=$DOCKER_EXPORT"
 	fi
@@ -127,13 +129,13 @@ if [ "$VERBOSE" = "1" ]; then
 	DOCKER_ARGS="--no-cache --progress=plain $DOCKER_ARGS"
 fi
 
-cd "$CONTEXT_DIR" || exit 1
-echo "# docker buildx build $DOCKER_ARGS --f seat_service/Dockerfile $CONTEXT_DIR"
-DOCKER_BUILDKIT=1 docker buildx build $DOCKER_ARGS -f seat_service/Dockerfile "$CONTEXT_DIR" $DOCKER_EXT
+cd "$SCRIPT_DIR" || exit 1
+echo "# docker buildx build $DOCKER_ARGS --f Dockerfile $SCRIPT_DIR"
+DOCKER_BUILDKIT=1 docker buildx build $DOCKER_ARGS -f Dockerfile "$SCRIPT_DIR" $DOCKER_EXT
 
 if [ "$DOCKER_ARCH" != "multiarch" ]; then
-	echo "docker image tag $DOCKER_ARCH/$DOCKER_IMAGE ghcr.io/eclipse/kuksa.val.services/$DOCKER_IMAGE:prerelease"
-	docker image tag $DOCKER_ARCH/$DOCKER_IMAGE ghcr.io/eclipse/kuksa.val.services/$DOCKER_IMAGE:prerelease
+	echo "docker image tag $DOCKER_ARCH/$DOCKER_IMAGE ghcr.io/eclipse-kuksa/kuksa-incubation/$DOCKER_IMAGE:prerelease"
+	docker image tag $DOCKER_ARCH/$DOCKER_IMAGE ghcr.io/eclipse-kuksa/kuksa-incubation/$DOCKER_IMAGE:prerelease
 fi
 
 echo "# Exported $DOCKER_ARCH/$DOCKER_IMAGE in $DOCKER_EXPORT"

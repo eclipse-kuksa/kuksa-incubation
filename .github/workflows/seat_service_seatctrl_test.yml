@@ -24,6 +24,10 @@ on:
       - "seat_service/CMakeLists.txt"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   # NOTE: CodeCoverage requires debug build...
@@ -33,7 +37,7 @@ jobs:
 
   build:
     # reduce runtime requirements from libc/libc++
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     name: Build
     steps:
       - name: adding github workspace as safe directory
@@ -44,7 +48,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          .github/workflows/scripts/install-ci-tooling.sh
+          .github/workflows/scripts/seat-install-ci-tooling.sh
 
       - name: Run build
         working-directory: ${{github.workspace}}/seat_service
@@ -62,7 +66,7 @@ jobs:
           minimum_coverage: 70
 
       - name: Upload Code coverage (html)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: report_codecov_vservice-seat-ctrl
           path: |
@@ -70,7 +74,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: report_test_vservice-seat-ctrl
           path: |

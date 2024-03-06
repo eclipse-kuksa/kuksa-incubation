@@ -5,8 +5,6 @@
 * for sub components like hvac_service and seat_service use pattern:
     **\<subcomponent>_\<action> eg: hvac_service**
 
-* for overall tasks use pattern:
-    **\<action> eg: release**
 
 ## Naming of Tags
 
@@ -29,6 +27,6 @@ In general the naming shall follow: **<type>(_<sub-type>)_<componenent-name>.tar
 
 ## How to create a new release
 
-See [Release Process](https://github.com/eclipse/kuksa.val.services/wiki/Release-Process)
+See [Release Process](https://github.com/eclipse-kuksa/kuksa-incubation/wiki/Release-Process)
 
 
