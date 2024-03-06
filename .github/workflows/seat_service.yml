@@ -28,6 +28,10 @@ on:
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
   cancel-in-progress: true
+  
+# Needed as default_workflow_permissions is "read"
+permissions:
+  packages: write
 
 jobs:
 
@@ -82,7 +86,7 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            ghcr.io/eclipse/kuksa.val.services/seat_service
+            ghcr.io/eclipse-kuksa/kuksa-incubation/seat_service
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
@@ -118,7 +122,7 @@ jobs:
           push: true
           tags: |
             ${{ steps.meta.outputs.tags }}
-            ttl.sh/kuksa.val.services/seat_service-${{github.sha}}
+            ttl.sh/eclipse-kuksa/kuksa-incubation/seat_service-${{github.sha}}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build container and push to ttl.sh
@@ -132,10 +136,10 @@ jobs:
           file: ./seat_service/Dockerfile
           context: .
           push: true
-          tags: "ttl.sh/kuksa.val.services/seat_service-${{github.sha}}"
+          tags: "ttl.sh/eclipse-kuksa/kuksa-incubation/seat_service-${{github.sha}}"
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Posting message
         uses: eclipse-kuksa/kuksa-actions/post-container-location@2
         with:
-          image: ttl.sh/kuksa.val.services/seat_service-${{github.sha}}
+          image: ttl.sh/eclipse-kuksa/kuksa-incubation/seat_service-${{github.sha}}
