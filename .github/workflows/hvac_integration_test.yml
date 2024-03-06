@@ -1,0 +1,128 @@
+# /********************************************************************************
+# * Copyright (c) 2022 Contributors to the Eclipse Foundation
+# *
+# * See the NOTICE file(s) distributed with this work for additional
+# * information regarding copyright ownership.
+# *
+# * This program and the accompanying materials are made available under the
+# * terms of the Apache License 2.0 which is available at
+# * http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * SPDX-License-Identifier: Apache-2.0
+# ********************************************************************************/
+
+name: hvac-integration-test
+
+on:
+  workflow_dispatch:
+  push:
+    # Run only on branches/commits and not tags
+    branches:
+      - main
+  pull_request:
+    paths:
+      - ".github/workflows/hvac_integration_test.yml"
+      - "hvac_service/**"
+      - "proto/**"
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  integration-test:
+    # reduce runtime requirements from libc/libc++
+    runs-on: ubuntu-20.04
+    # container:
+    #   image: ghcr.io/${{ github.repository }}/oci_kuksa-val-services-ci:v0.1.0
+    #   credentials:
+    #     username: ${{ github.repository_owner }}
+    #     password: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Adding github workspace as safe directory
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+          git config --global user.email "github-automation@users.noreply.github.com"
+          git config --global user.name "Github Automation"
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          .github/workflows/scripts/hvac-install-ci-tooling.sh
+
+      - name: Build hvac_service image
+        shell: bash
+        working-directory: ./hvac_service
+        run: |
+          ./docker-build.sh -l x86_64
+
+      - name: Setup VAL containers
+        shell: bash
+        env:
+          # We may need to specify a VSS version compatible with the code in this repository
+          # This is needed if the default VSS version used by Databroker has backward incompatible changes
+          # affecting integration tests for this repository
+          # The file specified must exist in the Databroker container
+          # KDB_OPT: "--vss vss_release_3.1.1.json"
+          HVAC_TAG: "prerelease"
+        run: |
+          ./hvac_service/integration_test/it-setup.sh init
+          if ! ./hvac_service/integration_test/it-setup.sh start; then
+            echo "### Container startup failed logs:"
+            ./hvac_service/integration_test/it-setup.sh status --logs
+            exit 1
+          fi
+          sleep 1
+          ./hvac_service/integration_test/it-setup.sh status --logs
+          # echo "$ docker image ls"
+          # docker image ls
+          # echo "$ docker ps -a"
+          # docker ps -a
+          # echo "$ docker inspect val-int"
+          # docker inspect val-int
+
+      - name: Install Requirements
+        shell: bash
+        run: |
+          pip3 install -U -r hvac_service/integration_test/requirements.txt
+          pip3 install -U -e hvac_service/
+          pip3 install -U -e hvac_service/integration_test/
+
+      - name: Run Integration Tests
+        shell: bash
+        env:
+          # force using it-setup.sh (testing with ghcr.io tags), DAPR standalone mode does not work in CI
+          USE_DAPR: "0"
+          GRPC_ENABLE_FORK_SUPPORT: "false"
+        run: |
+          pytest -v ./hvac_service/integration_test --asyncio-mode=auto \
+            --override-ini junit_family=xunit1 --junit-xml=./results/IntegrationTest/junit.xml \
+            --log-file=./results/IntegrationTest/integration.log --log-file-level=DEBUG
+
+# Step below disabled, only triggered for pull requests internally within repository
+# and that is typically not used, and is not working as action does not have sufficient permissions
+#     - name: Publish Integration Test Results
+#       uses: EnricoMi/publish-unit-test-result-action@v2
+#       if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+#       with:
+#         files: ./results/IntegrationTest/junit.xml
+
+      - name: Upload Integration Test Logs
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: integration_test.log
+          path: |
+            ./results/IntegrationTest/integration.log
+
+      - name: Integration logs and cleanup
+        shell: bash
+        run: |
+          ./hvac_service/integration_test/it-setup.sh status --logs
+          ./hvac_service/integration_test/it-setup.sh cleanup --force
+          docker image ls
+          docker ps -a

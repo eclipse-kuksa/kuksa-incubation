@@ -11,7 +11,7 @@
 # * SPDX-License-Identifier: Apache-2.0
 # ********************************************************************************/
 
-name: integration-test
+name: seat-integration-test
 
 on:
   workflow_dispatch:
@@ -20,8 +20,14 @@ on:
     branches:
       - main
   pull_request:
-    branches:
-      - main
+    paths:
+      - ".github/workflows/seat_integration_test.yml"
+      - "seat_service/**"
+      - "proto/**"
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
 
 jobs:
   integration-test:
@@ -46,26 +52,13 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          .github/workflows/scripts/install-ci-tooling.sh
+          .github/workflows/scripts/seat-install-ci-tooling.sh
 
       - name: Build seat_service image
         shell: bash
         working-directory: ./seat_service
         run: |
           ./docker-build.sh -l x86_64
-
-      - name: Build hvac_service image
-        shell: bash
-        working-directory: ./hvac_service
-        run: |
-          ./docker-build.sh -l x86_64
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup VAL containers
         shell: bash
@@ -76,16 +69,15 @@ jobs:
           # The file specified must exist in the Databroker container
           # KDB_OPT: "--vss vss_release_3.1.1.json"
           SEAT_TAG: "prerelease"
-          HVAC_TAG: "prerelease"
         run: |
-          ./integration_test/it-setup.sh init
-          if ! ./integration_test/it-setup.sh start; then
+          ./seat_service/integration_test/it-setup.sh init
+          if ! ./seat_service/integration_test/it-setup.sh start; then
             echo "### Container startup failed logs:"
-            ./integration_test/it-setup.sh status --logs
+            ./seat_service/integration_test/it-setup.sh status --logs
             exit 1
           fi
           sleep 1
-          ./integration_test/it-setup.sh status --logs
+          ./seat_service/integration_test/it-setup.sh status --logs
           # echo "$ docker image ls"
           # docker image ls
           # echo "$ docker ps -a"
@@ -96,9 +88,8 @@ jobs:
       - name: Install Requirements
         shell: bash
         run: |
-          pip3 install -U -r integration_test/requirements.txt
-          pip3 install -U -e hvac_service/
-          pip3 install -U -e integration_test/
+          pip3 install -U -r seat_service/integration_test/requirements.txt
+          pip3 install -U -e seat_service/integration_test/
 
       - name: Run Integration Tests
         shell: bash
@@ -107,7 +98,7 @@ jobs:
           USE_DAPR: "0"
           GRPC_ENABLE_FORK_SUPPORT: "false"
         run: |
-          pytest -v ./integration_test --asyncio-mode=auto \
+          pytest -v ./seat_service/integration_test --asyncio-mode=auto \
             --override-ini junit_family=xunit1 --junit-xml=./results/IntegrationTest/junit.xml \
             --log-file=./results/IntegrationTest/integration.log --log-file-level=DEBUG
 
@@ -130,7 +121,7 @@ jobs:
       - name: Integration logs and cleanup
         shell: bash
         run: |
-          ./integration_test/it-setup.sh status --logs
-          ./integration_test/it-setup.sh cleanup --force
+          ./seat_service/integration_test/it-setup.sh status --logs
+          ./seat_service/integration_test/it-setup.sh cleanup --force
           docker image ls
           docker ps -a

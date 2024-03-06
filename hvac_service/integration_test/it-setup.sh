@@ -30,9 +30,6 @@ cleanup() {
 	if docker ps -a | grep "${KDB_CONTAINER}"; then
 		docker container rm -f "${KDB_CONTAINER}"
 	fi
-	if docker ps -a | grep "${SEAT_CONTAINER}"; then
-		docker container rm -f "${SEAT_CONTAINER}"
-	fi
 	if docker ps -a | grep "${HVAC_CONTAINER}"; then
 		docker container rm -f "${HVAC_CONTAINER}"
 	fi
@@ -43,7 +40,6 @@ cleanup() {
 		echo "# Cleanup VAL ghcr images..."
 		docker image rm -f "${FEEDER_IMAGE}"
 		docker image rm -f "${KDB_IMAGE}"
-		[ "$SEAT_TAG" != "prerelease" ] && docker image rm -f "${SEAT_IMAGE}"
 		[ "$HVAC_TAG" != "prerelease" ] && docker image rm -f "${HVAC_IMAGE}"
 	fi
 }
@@ -65,20 +61,13 @@ pull_images() {
 	fi
 	if [ "${force}" = "1" ] ||
 		! __check_docker_image "${KDB_IMAGE}" ||
-		! __check_docker_image "${SEAT_IMAGE}" ||
 		! __check_docker_image "${HVAC_IMAGE}" ||
 		! __check_docker_image "${FEEDER_IMAGE}"; then
-		echo "- Pulling images form ${DOCKER_REPO} (May need manual login)..."
-		docker login "${DOCKER_REPO}"
 
 		echo "- docker pull ${KDB_IMAGE}"
 		docker pull "${KDB_IMAGE}"
 		echo "- docker pull ${FEEDER_IMAGE}"
 		docker pull "${FEEDER_IMAGE}"
-		if [ "$SEAT_TAG" != "prerelease" ]; then
-			echo "- docker pull ${SEAT_IMAGE}"
-			docker pull "${SEAT_IMAGE}"
-		fi
 		if [ "$HVAC_TAG" != "prerelease" ]; then
 			echo "- docker pull ${HVAC_IMAGE}"
 			docker pull "${HVAC_IMAGE}"
@@ -136,17 +125,15 @@ __check_docker_image() {
 check_it_containers() {
 	local verbose="$1"
 
-	local seat_err=0
 	local kdb_err=0
 	local feed_err=0
 	local hvac_err=0
 
 	__check_container_state "${KDB_CONTAINER}" "${verbose}" || kdb_err=1
-	__check_container_state "${SEAT_CONTAINER}" "${verbose}" || seat_err=1
 	__check_container_state "${HVAC_CONTAINER}" "${verbose}" || hvac_err=1
 	__check_container_state "${FEEDER_CONTAINER}" "${verbose}" || feed_err=1
 
-	if [ ${kdb_err} -ne 0 ] || [ ${seat_err} -ne 0 ] || [ ${feed_err} -ne 0 ] || [ ${hvac_err} -ne 0 ]; then
+	if [ ${kdb_err} -ne 0 ] || [ ${feed_err} -ne 0 ] || [ ${hvac_err} -ne 0 ]; then
 		return 1
 	fi
 	return 0
@@ -160,10 +147,6 @@ start_containers() {
 	# For successful run it might be important to specify VSS JSON file as part of KDB_OPT
 	docker run -d ${DOCKER_OPT} ${KDB_DOCKER_OPT} ${KDB_IMAGE} ${KDB_OPT} || rc=1
 
-	echo "- Running ${SEAT_CONTAINER} ..."
-	# SeatService container options. BROKER_ADDR is needed to reach it-databroker ports within val-test network
-	docker run -d ${DOCKER_OPT} ${SEAT_DOCKER_OPT} "${SEAT_IMAGE}" || rc=2
-
 	echo "- Running ${HVAC_CONTAINER} ..."
 	# SeatService container options. BROKER_ADDR is needed to reach it-databroker ports within val-test network
 	docker run -d ${DOCKER_OPT} ${HVAC_DOCKER_OPT} "${HVAC_IMAGE}" || rc=3
@@ -174,7 +157,6 @@ start_containers() {
 
 	echo
 	__check_container_state "${KDB_CONTAINER}" 1 || rc=1
-	__check_container_state "${SEAT_CONTAINER}" 1 || rc=2
 	__check_container_state "${HVAC_CONTAINER}" 1 || rc=3
 	__check_container_state "${FEEDER_CONTAINER}" 1 || rc=4
 	echo
@@ -210,7 +192,7 @@ it_init() {
 	fi
 
 	# auto pull/build images (only if missing)
-	if echo "${KDB_TAG}${SEAT_TAG}${HVAC_TAG}${FEEDER_TAG}" | grep -q "latest"; then
+	if echo "${KDB_TAG}${HVAC_TAG}${FEEDER_TAG}" | grep -q "latest"; then
 		build_images "${force}"
 	else
 		pull_images "${force}"
@@ -260,9 +242,6 @@ it_status() {
 		docker logs $DOCKER_LOG "${KDB_CONTAINER}"
 		echo "-----------------------"
 		echo
-		echo "### [${SEAT_CONTAINER}] Logs:"
-		docker logs $DOCKER_LOG "${SEAT_CONTAINER}"
-		echo "-----------------------"
 		echo
 		echo
 		echo "### [${HVAC_CONTAINER}] Logs:"

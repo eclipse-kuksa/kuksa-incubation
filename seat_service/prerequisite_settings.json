@@ -1,0 +1,13 @@
+{
+  "databroker": {
+    "version": "0.4.1",
+    "imageVersion": "master"
+  },
+  "feedercan": {
+    "version": "main",
+    "imageVersion": "0.4.1"
+  },
+  "kuksa_client": {
+    "version": "0.4.1"
+  }
+}

@@ -24,6 +24,10 @@ on:
       - "seat_service/CMakeLists.txt"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   # NOTE: CodeCoverage requires debug build...
@@ -44,7 +48,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          .github/workflows/scripts/install-ci-tooling.sh
+          .github/workflows/scripts/seat-install-ci-tooling.sh
 
       - name: Run build
         working-directory: ${{github.workspace}}/seat_service

@@ -29,3 +29,24 @@ The HVAC service is a service dummy allowing to control the state of the A/C and
 Configuration options have the following priority (highest at top):
 1. environment variable
 1. default value
+
+## Running HVAC service
+
+Databroker must have been started.
+
+```bash
+$ pip install -r requirements.txt
+$ ./hvacservice.py 
+INFO:hvac_service:Connecting to Data Broker [127.0.0.1:55555]
+INFO:hvac_service:Starting HVAC Service on 0.0.0.0:50052
+INFO:hvac_service:Using gRPC metadata: None
+INFO:hvac_service:[127.0.0.1:55555] Connectivity changed to: ChannelConnectivity.IDLE
+INFO:hvac_service:Connected to data broker
+INFO:hvac_service:Try register datapoints
+INFO:hvac_service:datapoints are registered.
+...
+```
+
+### Devcontainer
+
+A dev-container exist, you still need to do `pip install`.

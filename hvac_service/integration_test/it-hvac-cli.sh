@@ -56,7 +56,7 @@ if ! __check_container_state "${KDB__CONTAINER}" || ! __check_container_state "$
 	exit 10
 fi
 
-cd "${SCRIPT_DIR}/../hvac_service" || exit 1
+cd "${SCRIPT_DIR}/.." || exit 1
 
 ## NOTE: Might need some time after container startup to open the service port...
 # netstat -avpnt | grep ${HVAC_HOST_PORT}
