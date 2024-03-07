@@ -17,6 +17,10 @@
 # Specify:
 #   first argument: TARGET_ARCH = "x86_64" or "aarch64"; default: "x86_64"
 #   second argument: TARGET_ARCH = "<string>; default: "$SCRIPT_DIR/target/$TARGET_ARCH/Debug"
+#
+# Note: Build failures may occur if this script is run on a target with "wrong" gcc-version
+#
+
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

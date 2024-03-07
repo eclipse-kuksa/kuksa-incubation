@@ -54,17 +54,24 @@ For `aarch64` hosts or for quickly testing a pull request it is easier to use [G
 #### Prerequisites
 
 Most existing build scripts rely on that you have Docker installed.
-Some scripts also assumes that you use Ubuntu 20.04 as development environment,
-by for example building binaries locally and then copying to a docker environment based on Ubuntu 20.04.
+Some scripts also assumes that you use Ubuntu 22.04 as development environment,
+by for example building binaries locally and then copying to a docker environment based on Ubuntu 22.04.
+Conan config is setup to verify gcc-version against configuration in `toolchains`.
 
 1. Install and configure (if needed) local authentication proxy e.g. CNTLM or Px
 1. Install and configure docker: [Get Docker](https://docs.docker.com/get-docker/)
+
+Some hints if you want to update to a different environment and not change overall architecture
+
+1. Select the new Debian version to use
+2. Update base-image accordingly in all Dockerfile and in repo `.github/workflows` for seat service.
+3. Check default `gcc`version in that Ubuntu version and update version in files in `toolchains`.
 
 #### Usage on CLI
 
 **NOTE:** Building Seat Service on `aarch64` host is not supported at the moment.
 
-##### Building on Ubuntu 20.04
+##### Building on Ubuntu 22.04
 
 You can use dedicated build docker script [docker-build.sh](./docker-build.sh) if host environment matches target (Ubuntu 20.04).
 Note that you may need to install dependencies - use [.devcontainer/Dockerfile](.devcontainer/Dockerfile) as reference.
@@ -123,7 +130,7 @@ cd seat_service
 rm -rf bin_vservice-seat_*.tar.gz target/
 
 # Generate bin_vservice-seat_*.tar.gz files for packing seat service container
-docker run --rm -it -v $(pwd):/workspace oci_kuksa-val-services-ci:latest /bin/bash -c \
+docker run --rm -it -v $(pwd):/workspace seat_service_env:latest /bin/bash -c \
   "./build-release.sh --pack"
 
 # Check if release package is build
@@ -133,7 +140,7 @@ ls -la bin_vservice-seat_*.tar.gz
 It shall now be possible to start the service
 
 ``` bash
-$ docker run --rm -it -v $(pwd):/workspace xxx:latest target/x86_64/release/install/bin/seat_service
+$ docker run --rm -it -v $(pwd):/workspace seat_service_env:latest target/x86_64/release/install/bin/seat_service
 Usage: target/x86_64/release/install/bin/seat_service CAN_IF_NAME [LISTEN_ADDRESS [PORT]]
 
 Environment: SEAT_DEBUG=1 to enable SeatDataFeeder dumps

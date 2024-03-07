@@ -28,7 +28,7 @@ concurrency:
 jobs:
   build:
     # reduce runtime requirements from libc/libc++
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: Build docu
 
     steps:

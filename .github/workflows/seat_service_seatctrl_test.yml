@@ -37,7 +37,7 @@ jobs:
 
   build:
     # reduce runtime requirements from libc/libc++
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     name: Build
     steps:
       - name: adding github workspace as safe directory

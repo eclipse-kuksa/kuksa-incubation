@@ -13,7 +13,8 @@
 
 # Download base image of Ubuntu
 # NOTE: it may be required to build the image locally (check root README.md)
-FROM ubuntu:20.04
+#FROM mcr.microsoft.com/devcontainers/base:ubuntu
+FROM mcr.microsoft.com/devcontainers/base:ubuntu-22.04
 
 # If you get proxy errors, make sure Docker is configured correctly.
 # Hint: https://dev.to/zyfa/setup-the-proxy-for-dockerfile-building--4jc8
