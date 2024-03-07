@@ -37,7 +37,7 @@ export DAPR_GRPC_PORT="$FEEDERCAN_GRPC_PORT"
 FEEDERCAN_VERSION=$(jq -r '.feedercan.version // empty' "$CONFIG_JSON")
 
 ### Default feedercan settings (repo, tag are optional in json)
-FEEDERCAN_REPO="https://github.com/eclipse/kuksa.val.feeders.git"
+FEEDERCAN_REPO="https://github.com/eclipse-kuksa/kuksa-can-provider.git"
 if [ -z "$FEEDERCAN_VERSION" ]; then
 	echo "Coudln't find feedercan version from $CONFIG_JSON"
 	exit 1

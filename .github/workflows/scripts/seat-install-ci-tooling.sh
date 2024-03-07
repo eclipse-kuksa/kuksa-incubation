@@ -38,7 +38,8 @@ sudo apt-get -qqy install --no-install-recommends \
 	gcovr \
 	clang-format \
 	cppcheck \
-	valgrind
+	valgrind \
+	python3-setuptools
 
 # Install PIP
 [ -z "$(which pip3)" ] && sudo apt-get -qqy install --no-install-recommends --fix-missing python3-pip

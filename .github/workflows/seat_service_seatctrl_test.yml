@@ -66,7 +66,7 @@ jobs:
           minimum_coverage: 70
 
       - name: Upload Code coverage (html)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: report_codecov_vservice-seat-ctrl
           path: |
@@ -74,7 +74,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: report_test_vservice-seat-ctrl
           path: |

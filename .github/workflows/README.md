@@ -29,6 +29,6 @@ In general the naming shall follow: **<type>(_<sub-type>)_<componenent-name>.tar
 
 ## How to create a new release
 
-See [Release Process](https://github.com/eclipse/kuksa.val.services/wiki/Release-Process)
+See [Release Process](https://github.com/eclipse-kuksa/kuksa-incubation/wiki/Release-Process)
 
 

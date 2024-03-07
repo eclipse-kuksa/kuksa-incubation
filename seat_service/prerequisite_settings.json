@@ -5,9 +5,9 @@
   },
   "feedercan": {
     "version": "main",
-    "imageVersion": "0.4.1"
+    "imageVersion": "0.4"
   },
-  "kuksa_client": {
-    "version": "0.4.1"
+  "kuksa_clientz": {
+    "version": "0.4"
   }
 }

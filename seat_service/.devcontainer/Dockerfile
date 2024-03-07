@@ -71,6 +71,22 @@ RUN apt-get -qqy install --no-install-recommends \
   jq
 
 
+# Install PIP
+RUN apt-get -qqy install --fix-missing \
+  python3 \
+  python3-pip \
+  python3-setuptools
+
+# Default pip and setuptools are too old...
+RUN pip3 install --upgrade pip setuptools
+
+# conan: dependency management
+# conan needed > 1.43 for gtest and < 2.0
+# cantools: code generation from .dbc file
+RUN pip3 install \
+	'conan==1.56.0' \
+	'cantools==37.0.1'
+
 RUN apt-get clean
 
 # Install basic utils needed inside devcontainer
@@ -98,6 +114,9 @@ RUN echo $TZ > /etc/timezone && \
   apt-get install -qqy tzdata && \
   rm /etc/localtime && \
   dpkg-reconfigure -f noninteractive tzdata
+
+
+WORKDIR /workspace
 
 #TODO: fix and uncomment: This is needed for local development under linux
 #USER dockeruser

@@ -52,7 +52,7 @@ jobs:
           target/${{ matrix.target-arch }}/release/licenses/ \
           proto/
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bin_vservice-seat_${{ matrix.target-arch }}_release.tar.gz
           path: ${{github.workspace}}/seat_service/bin_vservice-seat_${{ matrix.target-arch }}_release.tar.gz

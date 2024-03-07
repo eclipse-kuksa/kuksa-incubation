@@ -54,7 +54,7 @@ jobs:
           docs/doxygen/out/html/
 
       - name: Upload docu
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: docu_vservice-seat
           path: ${{github.workspace}}/seat_service/docu_vservice-seat.tar.gz

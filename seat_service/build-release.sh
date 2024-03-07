@@ -121,7 +121,6 @@ if [ "$PACK" = "1" ]; then
 	mkdir -p "$ARCHIVE_PATH"
 
 	echo "# Copy all proto files in ./proto/"
-	cp -ra "$SCRIPT_DIR/../proto" .
 	cp -ra "$SCRIPT_DIR/proto" .
 	cp -ra "$BUILD_DIR/." "$ARCHIVE_PATH"
 

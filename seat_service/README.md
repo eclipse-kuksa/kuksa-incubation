@@ -215,8 +215,8 @@ The service examples and related tests in this repository use VSS signals. VSS s
 and backward incompatible changes may be introduced as part of major releases.
 Some of the tests in this repository relies on using latest version
 of [KUKSA.val Databroker](https://github.com/eclipse/kuksa.val/pkgs/container/kuksa.val%2Fdatabroker) and
-[KUKSA.val DBC Feeder](https://github.com/eclipse/kuksa.val.feeders/pkgs/container/kuksa.val.feeders%2Fdbc2val).
-Some code in the repository (like [Proto](https://github.com/eclipse/kuksa.val.services/tree/main/proto) definitions)
+[KUKSA CAN Provider](https://github.com/eclipse-kuksa/kuksa-can-provider).
+Some code in the repository (like [Proto](proto) definitions)
 have been copied from [KUKSA.val](https://github.com/eclipse/kuksa.val).
 
 This means that regressions may occur when KUKSA.val or KUKSA.val Feeders are updated. The intention for other KUKSA.val

@@ -49,7 +49,7 @@ FROM scratch
 #FROM alpine:latest
 # FROM arm64v8/python:3.8.12-alpine as Runtime
 
-LABEL org.opencontainers.image.source="https://github.com/eclipse/kuksa.val.services"
+LABEL org.opencontainers.image.source="https://github.com/eclipse-kuksa/kuksa-incubation"
 
 # needed as /dist/binary unpacks and runs from /tmp
 WORKDIR /tmp

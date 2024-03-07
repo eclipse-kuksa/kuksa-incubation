@@ -2,7 +2,7 @@
 
 ## Overview
 
-For more details on mapping format, check [dbc2val/mapping.md](https://github.com/eclipse/kuksa.val.feeders/blob/main/dbc2val/mapping/mapping.md)
+For more details on mapping format, check [kuksa-can-provider mapping](https://github.com/eclipse-kuksa/kuksa-can-provider/blob/main/mapping/README.md).
 
 ## Generating json config for Integration Tests
 

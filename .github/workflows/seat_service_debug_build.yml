@@ -53,7 +53,7 @@ jobs:
         run: ./build-debug.sh ${{ matrix.target-arch }}
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bin_vservice-seat_${{ matrix.target-arch }}_debug
           path: |
@@ -67,7 +67,7 @@ jobs:
 
       - name: Upload Test results (x86_64)
         if: ${{ matrix.target-arch == 'x86_64' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: report_test_vservice-seat
           path: |

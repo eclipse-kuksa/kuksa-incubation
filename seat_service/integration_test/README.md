@@ -3,7 +3,9 @@
 Integration tests can be run in develop (local) mode for Dapr validation or with VAL docker containers (also running on CI).
 
 - Integration tests in Local mode are using VS Code tasks defined in `.vscode/tasks.json`, see [README there](../.vscode/README.md).
-- Container mode uses released containers for databroker and dbc2val and can also build seat and hvac service containers to test with unreleased changes.
+- Container mode uses released containers for databroker and dbc2val and can also build seat  service containers to test with unreleased changes.
+
+##
 
 ## Integration test overview
 
@@ -15,25 +17,6 @@ Integration tests `./integration_test/test_*.py` are based on pytest and use ext
 
 SeatService is tested in simulated CAN mode `CAN="cansim"`. It uses an external script for asking the seat to move to desired positions (0, 1000, invalid),
 using `seat_svc_client` as grpc client.
-
-### HVAC Service integration test
-
-`integration_test/test_hvac.py` - This test checks if Hvac Service datapoints (`Vehicle.Cabin.DesiredAmbientAirTemperature`,
-`Vehicle.Cabin.IsAirConditioningActive`) are registered in Kuksa Data Broker and and after invoking external script to call
-HVAC client, checks if expected values are fed to Data Broker.
-
-### CAN Feeder (dbc2val) integration test
-
-`integration_test/test_feeder.py` - dbc2val is also included for integration testing as we don't have a master project to test all components.
-
-This test covers several dbc2val datapoints (`Vehicle.OBD.Speed`, `Vehicle.OBD.EngineLoad`).
-
-It checks if they are registered and also that some datapoints have changing values.
-
-**NOTE:** dbc2val default config must be changed as it feeds to `kuksa.val` server by default.\
-Custom configuration files are mapped to container as volume from: `./integration_test/volumes/dbc2val` and
-environment variables (`FEEDERCAN_*`) are set in `./it-config` script and also in vscode task: `run-feedercan.sh`.\
-Make sure `test_feeder.py` datapoints are available (and changing each second) in `./volumes/dbc2val/it-candump0.log`.
 
 ### Data Broker subscription helper
 
@@ -81,7 +64,6 @@ Python Integration tests depend on the following VS Code tasks:
 - `ensure-dapr`
 - `run-databroker`
 - `run-seatservice`
-- `run-hvacservice`
 - `run-feedercan`
 
 It is possible to use VS Code `Testing` panel for debugging failed test cases and also directly running the python file in debug mode.
@@ -95,10 +77,9 @@ To force using this mode (e.g. in CI) export `USE_DAPR=0` environment variable f
 Relevant scripts:
 
 - `integration_test/it-config` : This config defines the used images, tags, and docker specific options per val container.\
-  **NOTE**: It gets Data Broker and dbc2val tags from `./prerequisite_settings.json`, and if `SEAT_TAG`, `HVAC_TAG` environment variables are set to `prerelease`,
-  seat_service and hvac_service are build from local sources and tagged as ghcr.io images.
+  **NOTE**: It gets Data Broker and dbc2val tags from `./prerequisite_settings.json`, and if `SEAT_TAG` environment variables are set to `prerelease`,
+  seat_service are build from local sources and tagged as ghcr.io images.
 - `integration_test/it-seat-move.sh`: This script is used to execute `seat_svc_client` from seat_service container to initiate seat movement for integration tests.
-- `integration_test/it-hvac-cli.sh`: This script is used to execute `./hvac_service/testclient.py` to request hvac temperature and status changes.
 - `integration_test/it-setup.sh`: This is the main script handling val containers lifecycle:
 
     ```text
