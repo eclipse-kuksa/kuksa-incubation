@@ -31,13 +31,7 @@ concurrency:
 
 jobs:
   integration-test:
-    # reduce runtime requirements from libc/libc++
     runs-on: ubuntu-20.04
-    # container:
-    #   image: ghcr.io/${{ github.repository }}/oci_kuksa-val-services-ci:v0.1.0
-    #   credentials:
-    #     username: ${{ github.repository_owner }}
-    #     password: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Adding github workspace as safe directory

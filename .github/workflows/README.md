@@ -5,8 +5,6 @@
 * for sub components like hvac_service and seat_service use pattern:
     **\<subcomponent>_\<action> eg: hvac_service**
 
-* for overall tasks use pattern:
-    **\<action> eg: release**
 
 ## Naming of Tags
 

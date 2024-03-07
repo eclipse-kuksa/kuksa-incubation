@@ -49,4 +49,4 @@ INFO:hvac_service:datapoints are registered.
 
 ### Devcontainer
 
-A dev-container exist, you still need to do `pip install`.
+A dev-container exist, you still need to do `pip install` before starting hvac_service.

@@ -118,7 +118,7 @@ jobs:
             linux/amd64
             linux/arm64
           file: ./seat_service/Dockerfile
-          context: .
+          context: ./seat_service
           push: true
           tags: |
             ${{ steps.meta.outputs.tags }}
@@ -134,7 +134,7 @@ jobs:
             linux/amd64
             linux/arm64
           file: ./seat_service/Dockerfile
-          context: .
+          context: ./seat_service
           push: true
           tags: "ttl.sh/eclipse-kuksa/kuksa-incubation/seat_service-${{github.sha}}"
           labels: ${{ steps.meta.outputs.labels }}

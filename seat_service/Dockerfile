@@ -18,7 +18,7 @@ ARG TARGETPLATFORM
 
 WORKDIR /workspace
 
-COPY seat_service/bin_vservice-seat_*_release.* /workspace
+COPY bin_vservice-seat_*_release.* /workspace
 
 # FIXME! Binaries are built from another base image, potentially incompatible with ubuntu:latest image
 # RUN tar -xf bin_vservice-seat_x86_64_release.tar.gz && tar -xf bin_vservice-seat_aarch64_release.tar.gz
