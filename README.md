@@ -22,6 +22,7 @@ Component |  Content | Comment/Status
 ----------|----------|---------------
 [HVAC Service](hvac_service) | Python service example
 [Seat Service](seat_service) | C++ service example
+[eCAL Provider](ecal2val) | Python provider for [eCAL](https://projects.eclipse.org/projects/automotive.ecal)
 
 ## Contribution
 
