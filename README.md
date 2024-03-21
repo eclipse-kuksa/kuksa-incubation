@@ -23,6 +23,7 @@ Component |  Content | Comment/Status
 [HVAC Service](hvac_service) | Python service example
 [Seat Service](seat_service) | C++ service example
 [eCAL Provider](ecal2val) | Python provider for [eCAL](https://projects.eclipse.org/projects/automotive.ecal)
+[PS4/PS5 - 2021 Formula Provider](./fone2val) | F1 Telemetrydata source for [KUKSA Databroker](https://github.com/eclipse/kuksa.val/tree/master/kuksa_databroker)
 
 ## Contribution
 
