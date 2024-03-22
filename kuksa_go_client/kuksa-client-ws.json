@@ -1,0 +1,8 @@
+{
+    "serverAddress": "localhost",
+    "serverPort": 8090,
+    "insecure": true,
+    "certsDir": "tbd",
+    "TokenOrTokenfile" : "tbd",
+    "protocol": "ws"
+}

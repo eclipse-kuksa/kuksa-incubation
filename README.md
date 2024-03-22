@@ -24,6 +24,7 @@ Component |  Content | Comment/Status
 [Seat Service](seat_service) | C++ service example
 [eCAL Provider](ecal2val) | Python provider for [eCAL](https://projects.eclipse.org/projects/automotive.ecal)
 [PS4/PS5 - 2021 Formula Provider](./fone2val) | F1 Telemetrydata source for [KUKSA Databroker](https://github.com/eclipse/kuksa.val/tree/master/kuksa_databroker)
+[KUKSA GO Client](kuksa_go_client)   | Example client written in the [GO](https://go.dev/) programming language for easy interaction with KUKSA Databroker and Server
 
 ## Contribution
 
