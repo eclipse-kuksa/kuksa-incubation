@@ -25,12 +25,14 @@ Component |  Content | Comment/Status
 [eCAL Provider](ecal2val) | Python provider for [eCAL](https://projects.eclipse.org/projects/automotive.ecal)
 [PS4/PS5 - 2021 Formula Provider](./fone2val) | F1 Telemetrydata source for [KUKSA Databroker](https://github.com/eclipse/kuksa.val/tree/master/kuksa_databroker)
 [KUKSA GO Client](kuksa_go_client)   | Example client written in the [GO](https://go.dev/) programming language for easy interaction with KUKSA Databroker and Server
+[ESP32 gRPC provider](gRPC-on-ESP32)   | Example for interacting with the [KUKSA Databroker](https://github.com/eclipse/kuksa.val/tree/master/kuksa_databroker) with ESP32-based microcontrollers
 
 ## Contribution
 
 For contribution guidelines see [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Pre-commit set up
+
 This repository is set up to use [pre-commit](https://pre-commit.com/) hooks.
 Use `pip install pre-commit` to install pre-commit.
 After you clone the project, run `pre-commit install` to install pre-commit into your git hooks.

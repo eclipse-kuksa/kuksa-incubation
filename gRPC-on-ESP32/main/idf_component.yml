@@ -1,0 +1,6 @@
+dependencies:
+  espressif/nghttp: "^1.58.0"
+  espressif/sh2lib:
+    version: ^1.0.0
+description: HTTP2 Request Examples
+version: 1.0.0

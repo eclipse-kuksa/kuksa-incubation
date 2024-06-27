@@ -1,0 +1,7 @@
+.idea
+.vscode
+build/
+managed_components/
+cmake-build-debug/
+sdkconfig
+components
