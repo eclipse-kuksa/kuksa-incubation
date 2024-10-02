@@ -1,0 +1,29 @@
+/********************************************************************************
+ * Copyright (c) 2024 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+********************************************************************************/
+
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+
+use kuksa::proto::v1::DataType;
+
+#[derive(Debug, Clone, Copy)]
+pub struct MetadataInfo {
+    pub data_type: DataType,
+}
+
+pub type MetadataStore = Arc<Mutex<HashMap<String, MetadataInfo>>>;
+
+pub fn create_metadata_store() -> MetadataStore {
+    Arc::new(Mutex::new(HashMap::new()))
+}

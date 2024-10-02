@@ -1,0 +1,30 @@
+#*******************************************************************************
+# Copyright (c) 2024 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Eclipse Public License 2.0 which is available at
+# http://www.eclipse.org/legal/epl-2.0
+#
+# SPDX-License-Identifier: EPL-2.0
+#*******************************************************************************
+
+
+[package]
+name = "zenoh-kuksa-provider"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+zenoh = { version = "0.11.0", features = ["unstable"] }
+tokio = { version = "1.0", features = ["full"] }
+serde_json = "1.0.124"
+json5 = "0.4.1"
+serde = "1.0.207"
+log = "0.4.21"
+env_logger = "0.10.2"
+kuksa = { git = "https://github.com/eclipse-kuksa/kuksa-databroker.git", branch = "feature/refactor_kuksa_crate", package = "kuksa" }
+clap = { version = "4.5.18", features = ["derive", "env"] }
+prost-types = "0.11.9"
