@@ -65,7 +65,7 @@ impl ProviderConfig {
         };
         config.set_mode(Some(mode)).unwrap();
 
-        if self.zenoh.scouting.multicast.enabled == true {
+        if self.zenoh.scouting.multicast.enabled {
             config.scouting.multicast.set_enabled(Some(true)).unwrap();
 
             config
