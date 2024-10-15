@@ -91,10 +91,8 @@ async fn handling_zenoh_subscribtion(
 async fn publish_to_zenoh(
     provider_config: Arc<ProviderConfig>,
     session: Arc<Session>,
-    kuksa_client: Arc<Mutex<kuksa::Client>>,
+    mut kuksa_client: kuksa::Client,
 ) {
-    let mut actuation_client = kuksa_client.lock().await;
-
     let attachment = Some(String::from("type=targetValue"));
 
     let vss_paths = Vec::from_iter(provider_config.signals.iter().map(String::as_str));
@@ -114,7 +112,7 @@ async fn publish_to_zenoh(
         vss_paths
     );
 
-    match actuation_client.subscribe_target_values(vss_paths).await {
+    match kuksa_client.subscribe_target_values(vss_paths).await {
         Ok(mut stream) => {
             while let Some(response) = stream.message().await.unwrap() {
                 for update in &response.updates {
@@ -123,7 +121,7 @@ async fn publish_to_zenoh(
                             let vss_path = &entry.path;
 
                             if let Some(publisher) = publishers.get(vss_path.as_str()) {
-                                let buf = match datapoint_to_string(&datapoint) {
+                                let buf = match datapoint_to_string(datapoint) {
                                     Some(v) => v,
                                     None => "null".to_string(),
                                 };
@@ -182,7 +180,8 @@ async fn main() {
 
     let uri = kuksa::Uri::try_from(provider_config.kuksa.databroker_url.as_str())
         .expect("Invalid URI for Kuksa Databroker connection.");
-    let client = Arc::new(Mutex::new(kuksa::Client::new(uri)));
+    let client = Arc::new(Mutex::new(kuksa::Client::new(uri.clone())));
+    let actuation_client = kuksa::Client::new(uri);
 
     fetch_metadata(
         client.clone(),
@@ -202,8 +201,7 @@ async fn main() {
     let publisher_handle = tokio::spawn({
         let session = Arc::clone(&zenoh_session);
         let provider_config = Arc::clone(&provider_config);
-        let kuksa_client = Arc::clone(&client);
-        publish_to_zenoh(provider_config, session, kuksa_client)
+        publish_to_zenoh(provider_config, session, actuation_client)
     });
 
     let _ = subscriber_handle.await;

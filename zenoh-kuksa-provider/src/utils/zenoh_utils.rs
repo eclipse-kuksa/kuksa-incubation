@@ -30,7 +30,7 @@ pub fn zbuf_to_string(zbuf: &ZBuf) -> Result<String, std::str::Utf8Error> {
     for zslice in zbuf.zslices() {
         bytes.extend_from_slice(zslice.as_slice());
     }
-    String::from_utf8(bytes).map_err(|e| std::str::Utf8Error::from(e.utf8_error()))
+    String::from_utf8(bytes).map_err(|e| e.utf8_error())
 }
 
 pub fn extract_attachment_as_string(sample: &Sample) -> String {

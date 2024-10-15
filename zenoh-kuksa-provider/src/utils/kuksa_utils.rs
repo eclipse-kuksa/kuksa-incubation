@@ -68,10 +68,10 @@ pub fn new_datapoint(data_type: &DataType, payload: &ZBuf) -> Datapoint {
         nanos: duration_since_epoch.subsec_nanos() as i32,
     };
 
-    return Datapoint {
+    Datapoint {
         timestamp: Some(timestamp), // TODO: get timestamp right
         value: Some(value),
-    };
+    }
 }
 
 pub fn new_datapoint_for_update(
