@@ -55,8 +55,6 @@ async fn handling_zenoh_subscribtion(
 ) {
     info!("Listening on selector: {:?}", provider_config.zenoh.key_exp);
 
-    let mut sub_client = kuksa_client.lock().await;
-
     let provider_config_clone = Arc::clone(&provider_config);
     let subscriber = session
         .declare_subscriber(provider_config_clone.zenoh.key_exp.clone())
@@ -79,11 +77,13 @@ async fn handling_zenoh_subscribtion(
         if field_type == "currentValue" {
             let datapoint_update = new_datapoint_for_update(&vss_path, &sample, &store);
 
+            let mut sub_client = kuksa_client.lock().await;
             debug!("Forwarding: {:#?}", datapoint_update);
             sub_client
                 .set_current_values(datapoint_update)
                 .await
                 .unwrap();
+            drop(sub_client);
         }
     }
 }
