@@ -17,7 +17,6 @@ use provider_config::ProviderConfig;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::{error::Error, fs};
-use tokio::sync::Mutex;
 
 mod provider_config;
 mod utils;
@@ -51,7 +50,7 @@ async fn handling_zenoh_subscribtion(
     provider_config: Arc<ProviderConfig>,
     session: Arc<Session>,
     metadata_store: MetadataStore,
-    kuksa_client: Arc<Mutex<kuksa::Client>>,
+    mut kuksa_client: kuksa::Client,
 ) {
     info!("Listening on selector: {:?}", provider_config.zenoh.key_exp);
 
@@ -77,13 +76,11 @@ async fn handling_zenoh_subscribtion(
         if field_type == "currentValue" {
             let datapoint_update = new_datapoint_for_update(&vss_path, &sample, &store);
 
-            let mut sub_client = kuksa_client.lock().await;
             debug!("Forwarding: {:#?}", datapoint_update);
-            sub_client
+            kuksa_client
                 .set_current_values(datapoint_update)
                 .await
                 .unwrap();
-            drop(sub_client);
         }
     }
 }
@@ -180,11 +177,11 @@ async fn main() {
 
     let uri = kuksa::Uri::try_from(provider_config.kuksa.databroker_url.as_str())
         .expect("Invalid URI for Kuksa Databroker connection.");
-    let client = Arc::new(Mutex::new(kuksa::Client::new(uri.clone())));
+    let mut client = kuksa::Client::new(uri.clone());
     let actuation_client = kuksa::Client::new(uri);
 
-    fetch_metadata(
-        client.clone(),
+    client = fetch_metadata(
+        client,
         provider_config.signals.iter().map(|s| s as &str).collect(),
         &metadata_store,
     )
@@ -194,8 +191,7 @@ async fn main() {
         let session = Arc::clone(&zenoh_session);
         let provider_config = Arc::clone(&provider_config);
         let metadata_store = Arc::clone(&metadata_store);
-        let kuksa_client = Arc::clone(&client);
-        handling_zenoh_subscribtion(provider_config, session, metadata_store, kuksa_client)
+        handling_zenoh_subscribtion(provider_config, session, metadata_store, client)
     });
 
     let publisher_handle = tokio::spawn({
