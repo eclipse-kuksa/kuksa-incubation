@@ -12,24 +12,23 @@
  ********************************************************************************/
 
 use kuksa::proto::v1::{datapoint::Value, DataType, Datapoint};
+use kuksa::Client;
 use log::warn;
 use prost_types::Timestamp;
 use std::time::{SystemTime, UNIX_EPOCH};
-use std::{collections::HashMap, sync::Arc};
-use tokio::sync::Mutex;
+use std::collections::HashMap;
 use zenoh::{buffers::ZBuf, sample::Sample};
 
 use crate::utils::{metadata_store::MetadataInfo, zenoh_utils::zbuf_to_string};
 
 pub async fn fetch_metadata(
-    kuksa_client: Arc<Mutex<kuksa::Client>>,
+    mut kuksa_client: Client,
     paths: Vec<&str>,
     metadata_store: &super::metadata_store::MetadataStore,
-) {
-    let mut client = kuksa_client.lock().await;
+) -> Client {
     let mut store = metadata_store.lock().await;
 
-    let data_entries: Vec<kuksa::DataEntry> = client.get_metadata(paths).await.unwrap();
+    let data_entries: Vec<kuksa::DataEntry> = kuksa_client.get_metadata(paths).await.unwrap();
 
     for entry in data_entries {
         store.insert(
@@ -40,6 +39,8 @@ pub async fn fetch_metadata(
             },
         );
     }
+
+    kuksa_client
 }
 
 pub fn new_datapoint(data_type: &DataType, payload: &ZBuf) -> Datapoint {
