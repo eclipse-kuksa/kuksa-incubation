@@ -21,7 +21,7 @@ pub struct StoreItem {
 }
 
 #[derive(Default, Debug, PartialEq)]
-pub struct  StorageConfig {
+pub struct StorageConfig {
     pub storagetype: StorageType,
 }
 
@@ -30,11 +30,10 @@ pub struct  StorageConfig {
 pub enum StorageType {
     FileStorageType(FileStorageType),
     // Add more storage types here
-    
 }
 
 #[derive(Debug, PartialEq)]
-pub struct  FileStorageType {
+pub struct FileStorageType {
     pub filepath: String,
 }
 
@@ -44,14 +43,13 @@ impl Default for StorageType {
     }
 }
 
-
 impl Default for FileStorageType {
     fn default() -> Self {
-        FileStorageType {filepath: "storage.json".to_string()}
+        FileStorageType {
+            filepath: "storage.json".to_string(),
+        }
     }
 }
-
-
 
 pub trait Storage {
     fn new(config: StorageConfig) -> Self;

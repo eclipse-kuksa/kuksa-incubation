@@ -10,9 +10,9 @@
 
 use std::collections::HashMap;
 use std::fmt;
-use std::time::SystemTime;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
+use std::time::SystemTime;
 
 use kuksa::proto;
 

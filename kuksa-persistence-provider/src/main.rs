@@ -19,15 +19,15 @@ use std::{env, path::PathBuf};
 
 // Use one of two JSON libraries
 #[cfg(all(feature = "json_tinyjson", feature = "json_djson"))]
-compile_error!("feature \"json_tinyjson\" and feature \"json_djson\" cannot be enabled at the same time");
+compile_error!(
+    "feature \"json_tinyjson\" and feature \"json_djson\" cannot be enabled at the same time"
+);
 
 #[cfg(feature = "json_tinyjson")]
 use tinyjson::JsonValue;
 
-
 #[cfg(feature = "json_djson")]
 use djson::Value as JsonValue;
-
 
 use tokio::signal::ctrl_c;
 
@@ -94,14 +94,13 @@ async fn main() {
     log::debug!("Configuration file content: {}", config_str);
 
     #[cfg(feature = "json_tinyjson")]
-    let parsed_cfg: ConfigValue  = match config_str.parse::<tinyjson::JsonValue>() {
+    let parsed_cfg: ConfigValue = match config_str.parse::<tinyjson::JsonValue>() {
         Ok(p) => p.into(),
         Err(e) => {
             log::error!("Error parsing JSON data structure: {:?}", e);
             std::process::exit(1);
         }
     };
-
 
     #[cfg(feature = "json_djson")]
     let parsed_cfg: ConfigValue = match djson::from_reader(config_str.as_bytes()) {
@@ -122,42 +121,48 @@ async fn main() {
 
     log::debug!("Parsed JSON data structure: {:?}", parsed_cfg_hash);
 
-
     let parsed_storage_type: storage::StorageType = match parsed_cfg_hash["state-storage"] {
         ConfigValue::Object(ref parsed_storage_config) => {
-                match parsed_storage_config.get("type").expect("state-storage type configuration missing") {
-                    // For FileStorageType
-                    ConfigValue::String( s) if *s == "file".to_string() => {
-                        // FileStorageType needs filepath otherwise default is
-                        match parsed_storage_config.get("path"){
-                            Some(ConfigValue::String( path)) => {
-                                storage::StorageType::FileStorageType(storage::FileStorageType {filepath: path.clone()})
-                            },
-                            None => {
-                                log::info!("state storage path is not existent, using default storage path");
-                                storage::StorageType::FileStorageType(storage::FileStorageType::default())
-                            }
-                            _ => {
-                                log::error!("Error: state storage path is invalid");
-                                std::process::exit(1);
-                            }
+            match parsed_storage_config
+                .get("type")
+                .expect("state-storage type configuration missing")
+            {
+                // For FileStorageType
+                ConfigValue::String(s) if *s == "file".to_string() => {
+                    // FileStorageType needs filepath otherwise default is
+                    match parsed_storage_config.get("path") {
+                        Some(ConfigValue::String(path)) => {
+                            storage::StorageType::FileStorageType(storage::FileStorageType {
+                                filepath: path.clone(),
+                            })
                         }
-
-                    },
-                    // Undefined storage types
-                    _ => {
-                        log::error!("Error: state storage type is invalid");
-                        std::process::exit(1);
+                        None => {
+                            log::info!(
+                                "state storage path is not existent, using default storage path"
+                            );
+                            storage::StorageType::FileStorageType(
+                                storage::FileStorageType::default(),
+                            )
+                        }
+                        _ => {
+                            log::error!("Error: state storage path is invalid");
+                            std::process::exit(1);
+                        }
                     }
                 }
+                // Undefined storage types
+                _ => {
+                    log::error!("Error: state storage type is invalid");
+                    std::process::exit(1);
+                }
             }
+        }
         _ => {
             log::info!("no state storage configuration found, using default");
             storage::StorageType::default()
         }
     };
 
-    
     let storage = storage::FileStorage::new(storage::StorageConfig {
         storagetype: parsed_storage_type,
     });
@@ -169,7 +174,6 @@ async fn main() {
 
     match parsed_cfg_hash.get("restore-only") {
         Some(ConfigValue::Object(section)) => {
-
             match section.get("values") {
                 Some(ConfigValue::Array(elements)) => {
                     for path in elements {
@@ -188,7 +192,7 @@ async fn main() {
                 }
             }
 
-            match section.get("actuators"){
+            match section.get("actuators") {
                 Some(ConfigValue::Array(elements)) => {
                     for path in elements {
                         // restore_actuation_values.push(path.get::<String>().unwrap().to_string());
@@ -215,10 +219,8 @@ async fn main() {
         }
     }
 
-
     match parsed_cfg_hash.get("restore-and-watch") {
         Some(ConfigValue::Object(section)) => {
-
             match section.get("values") {
                 Some(ConfigValue::Array(elements)) => {
                     for path in elements {
@@ -238,7 +240,7 @@ async fn main() {
                 }
             }
 
-            match section.get("actuators"){
+            match section.get("actuators") {
                 Some(ConfigValue::Array(elements)) => {
                     for path in elements {
                         // restore_actuation_values.push(path.get::<String>().unwrap().to_string());
@@ -265,7 +267,6 @@ async fn main() {
             log::info!("invalid restore-only configuration found");
         }
     }
-
 
     // Each subscription needs a separate client
     let kuksa_client = kuksaconnector::create_kuksa_client("grpc://127.0.01:55556");

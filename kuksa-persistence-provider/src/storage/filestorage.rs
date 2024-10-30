@@ -29,7 +29,7 @@ pub struct FileStorage {
 impl Storage for FileStorage {
     fn new(config: StorageConfig) -> Self {
         match config.storagetype {
-            StorageType::FileStorageType ( FileStorageType{filepath} ) => {
+            StorageType::FileStorageType(FileStorageType { filepath }) => {
                 log::info!("Initializing file storage on {}", filepath);
                 let path = filepath.clone();
                 println!("Reading storage from {}", path);
