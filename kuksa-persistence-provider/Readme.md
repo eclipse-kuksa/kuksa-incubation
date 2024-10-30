@@ -8,7 +8,7 @@ An example for one-time restoration of current values are attributes that are ma
 
 This provider can also watch (subscribe) certain current or actuation values. This is useful when interacting with components that do not provide their own persistence management. Assume a climate control UI that can react on unser input and interact with the HVAC system, but is otherwise stateless. By watching and restoring the desired target temperature, the user's preference is saved and restored, without the HVAC UI needing any specific code to handle this.
 
-## Configuration: config,json
+## Configuration: config.json
 
 Main configuration is in config.json, and example may look like this
 
@@ -40,11 +40,11 @@ Main configuration is in config.json, and example may look like this
 }
 ```
 
-## restore-only section
+### section restore-only 
 
 These elements will be restored from the state store upon startup, but their values will not be watched and updated for changes. You can define whether the current values (values) will be restored or whether a target value is set (actuators).
 
-## restore-and-watch
+### section restore-and-watch
 
 These elements will be restored from the state store upon startup. It is the intention to also monitor their state and update it in the state store. You can define whether the current values (values) will be restored and watched or whether a target value is set (actuators) and watched. As restore-and-watch includes restore, there is no need to add paths in restore-and-watch to restore-only as well.
 
@@ -89,6 +89,10 @@ docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-databroker:latest --p
 
 ```bash
 docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-python-sdk/kuksa-client:latest grpc://127.0.0.1:55556
+#
+getValue Vehicle.Cabin.HVAC.Station.Row4.Passenger.FanSpeed
+
+
 ```
 
 # TODO 
