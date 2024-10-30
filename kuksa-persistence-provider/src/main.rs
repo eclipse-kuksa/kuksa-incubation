@@ -15,7 +15,7 @@ use storage::Storage;
 
 use clap::Parser;
 use std::collections::HashMap;
-use std::fmt::{Debug};
+use std::fmt::Debug;
 use std::{env, path::PathBuf};
 use anyhow::{Result, anyhow};
 
