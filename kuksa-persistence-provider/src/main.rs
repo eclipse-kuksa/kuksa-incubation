@@ -69,21 +69,9 @@ struct CmdLine {
     debug: u8,
 }
 
-#[tokio::main]
-async fn main() {
-    // Initialize logger
-    if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "info")
-    }
-    env_logger::init();
-
-    let args = CmdLine::parse();
-
-    let config_path = args.config.unwrap_or_else(|| PathBuf::from("config.json"));
-
-    // Reading configuration file into a string
-    log::info!("Reading configuration from: {}", config_path.display());
-    let config_str = match std::fs::read_to_string(&config_path) {
+// Parse the configuration file to a ConfigValue
+fn parse_cfgfile(path: &PathBuf) -> ConfigValue {
+    let config_str = match std::fs::read_to_string(&path) {
         Ok(s) => s,
         Err(e) => {
             log::error!("Error reading configuration file: {:?}", e);
@@ -111,6 +99,11 @@ async fn main() {
         }
     };
 
+    parsed_cfg
+}
+
+// Create a storage instance from the configuration
+fn create_storage_from_cfg(parsed_cfg: &ConfigValue) -> storage::FileStorage {
     let parsed_cfg_hash = match parsed_cfg {
         ConfigValue::Object(o) => o,
         _ => {
@@ -163,110 +156,102 @@ async fn main() {
         }
     };
 
-    let storage = storage::FileStorage::new(storage::StorageConfig {
+    storage::FileStorage::new(storage::StorageConfig {
         storagetype: parsed_storage_type,
-    });
+    })
+}
+
+fn collect_vss_paths(
+    config: &ConfigValue,
+    section_name: &str,
+    element_name: &str,
+    str_arrays: &mut [&mut Vec<String>],
+) {
+    let parsed_cfg_hash = match config {
+        ConfigValue::Object(o) => o,
+        _ => {
+            log::error!("Error: JSON config data structure is wrong");
+            std::process::exit(1);
+        }
+    };
+    // Find section in parsed config
+    match parsed_cfg_hash.get(section_name) {
+        Some(ConfigValue::Object(section)) => {
+            match section.get(element_name) {
+                Some(ConfigValue::Array(elements)) => {
+                    for path in elements {
+                        match path {
+                            ConfigValue::String(vsspath) => {
+                                // restore_current_values.push(vsspath.clone());
+                                for str_array in str_arrays.iter_mut() {
+                                    str_array.push(vsspath.clone());
+                                }
+                            }
+                            _ => {
+                                log::info!("invalid restore-only value found");
+                            }
+                        }
+                    }
+                }
+                _ => {
+                    log::info!("no {} {} found", section_name, element_name);
+                }
+            }
+        }
+        None => {
+            log::info!("no {} configuration found", section_name);
+        }
+        _ => {
+            log::info!("invalid {} configuration found", section_name);
+        }
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    // Initialize logger
+    if env::var("RUST_LOG").is_err() {
+        env::set_var("RUST_LOG", "info")
+    }
+    env_logger::init();
+
+    let args = CmdLine::parse();
+
+    let config_path = args.config.unwrap_or_else(|| PathBuf::from("config.json"));
+
+    let parsed_cfg = parse_cfgfile(&config_path);
+    let storage = create_storage_from_cfg(&parsed_cfg);
 
     let mut restore_current_values: Vec<String> = vec![];
     let mut restore_actuation_values: Vec<String> = vec![];
     let mut watch_current_values: Vec<String> = vec![];
     let mut watch_actuation_values: Vec<String> = vec![];
 
-    match parsed_cfg_hash.get("restore-only") {
-        Some(ConfigValue::Object(section)) => {
-            match section.get("values") {
-                Some(ConfigValue::Array(elements)) => {
-                    for path in elements {
-                        match path {
-                            ConfigValue::String(vsspath) => {
-                                restore_current_values.push(vsspath.clone());
-                            }
-                            _ => {
-                                log::info!("invalid restore-only value found");
-                            }
-                        }
-                    }
-                }
-                _ => {
-                    log::info!("no restore-only values found");
-                }
-            }
+    collect_vss_paths(
+        &parsed_cfg,
+        "restore-only",
+        "values",
+        &mut [&mut restore_current_values, &mut watch_current_values],
+    );
+    collect_vss_paths(
+        &parsed_cfg,
+        "restore-only",
+        "actuators",
+        &mut [&mut restore_actuation_values],
+    );
 
-            match section.get("actuators") {
-                Some(ConfigValue::Array(elements)) => {
-                    for path in elements {
-                        // restore_actuation_values.push(path.get::<String>().unwrap().to_string());
-                        match path {
-                            ConfigValue::String(vsspath) => {
-                                restore_actuation_values.push(vsspath.clone());
-                            }
-                            _ => {
-                                log::info!("invalid restore-only actuator found");
-                            }
-                        }
-                    }
-                }
-                _ => {
-                    log::info!("no restore-only actuators found");
-                }
-            }
-        }
-        None => {
-            log::info!("no restore-only configuration found");
-        }
-        _ => {
-            log::info!("invalid restore-only configuration found");
-        }
-    }
-
-    match parsed_cfg_hash.get("restore-and-watch") {
-        Some(ConfigValue::Object(section)) => {
-            match section.get("values") {
-                Some(ConfigValue::Array(elements)) => {
-                    for path in elements {
-                        match path {
-                            ConfigValue::String(vsspath) => {
-                                restore_current_values.push(vsspath.clone());
-                                watch_current_values.push(vsspath.clone());
-                            }
-                            _ => {
-                                log::info!("invalid restore-only value found");
-                            }
-                        }
-                    }
-                }
-                _ => {
-                    log::info!("no restore-only values found");
-                }
-            }
-
-            match section.get("actuators") {
-                Some(ConfigValue::Array(elements)) => {
-                    for path in elements {
-                        // restore_actuation_values.push(path.get::<String>().unwrap().to_string());
-                        match path {
-                            ConfigValue::String(vsspath) => {
-                                restore_actuation_values.push(vsspath.clone());
-                                watch_actuation_values.push(vsspath.clone());
-                            }
-                            _ => {
-                                log::info!("invalid restore-only actuator found");
-                            }
-                        }
-                    }
-                }
-                _ => {
-                    log::info!("no restore-only actuators found");
-                }
-            }
-        }
-        None => {
-            log::info!("no restore-only configuration found");
-        }
-        _ => {
-            log::info!("invalid restore-only configuration found");
-        }
-    }
+    collect_vss_paths(
+        &parsed_cfg,
+        "restore-and-watch",
+        "values",
+        &mut [&mut restore_current_values, &mut watch_current_values],
+    );
+    collect_vss_paths(
+        &parsed_cfg,
+        "restore-and-watch",
+        "actuators",
+        &mut [&mut restore_actuation_values, &mut watch_actuation_values],
+    );
 
     // Each subscription needs a separate client
     let kuksa_client = kuksaconnector::create_kuksa_client("grpc://127.0.01:55556");
