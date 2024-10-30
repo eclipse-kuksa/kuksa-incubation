@@ -188,7 +188,7 @@ fn collect_vss_paths(
                                 }
                             }
                             _ => {
-                                log::info!("invalid restore-only value found");
+                                log::info!("invalid {} {} found", section_name, element_name);
                             }
                         }
                     }
@@ -231,7 +231,7 @@ async fn main() {
         &parsed_cfg,
         "restore-only",
         "values",
-        &mut [&mut restore_current_values, &mut watch_current_values],
+        &mut [&mut restore_current_values],
     );
     collect_vss_paths(
         &parsed_cfg,
@@ -269,9 +269,6 @@ async fn main() {
         &restore_actuation_values,
     )
     .await;
-
-    drop(restore_actuation_values);
-    drop(restore_current_values);
 
     kuksaconnector::watch_values(
         storage.get_queue(),
