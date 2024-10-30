@@ -10,7 +10,7 @@
 
 use tinyjson::JsonValue;
 
-use super::{Storage, StoreItem};
+use super::{FileStorageType, Storage, StorageConfig, StorageType, StoreItem};
 use std::collections::HashMap;
 
 use std::io::Write;
@@ -27,11 +27,11 @@ pub struct FileStorage {
 }
 
 impl Storage for FileStorage {
-    fn new(config: &JsonValue) -> Self {
-        match config["path"].get::<String>() {
-            Some(x) => {
-                log::info!("Initializing file storage on {}", x);
-                let path = x.clone();
+    fn new(config: StorageConfig) -> Self {
+        match config.storagetype {
+            StorageType::FileStorageType ( FileStorageType{filepath} ) => {
+                log::info!("Initializing file storage on {}", filepath);
+                let path = filepath.clone();
                 println!("Reading storage from {}", path);
                 let config_str = std::fs::read_to_string(&path).unwrap();
                 let state: JsonValue = config_str.parse().unwrap();

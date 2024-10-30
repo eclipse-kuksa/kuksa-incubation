@@ -69,3 +69,27 @@ As the statestore does not make a difference between current and target (actuati
     }
 }
 ```
+
+## Features
+
+* djson: Use a dependable json library. 
+  Enable with ```cargo build --features json_djson --no-default-features```
+
+## Build
+
+```bash
+cargo build --features json_djson --no-default-features
+```
+
+## Test
+
+```bash
+docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-databroker:latest --port 55556
+```
+
+```bash
+docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-python-sdk/kuksa-client:latest grpc://127.0.0.1:55556
+```
+
+# TODO 
+* config mit djson parsen
