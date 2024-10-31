@@ -46,8 +46,9 @@ jobs:
           go run protocInstall/protocInstall.go
           export PATH=$PATH:$HOME/protoc/bin
           sudo chmod +x $HOME/protoc/bin/protoc
-          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          # As we in protocInstall.go download a specific version of protoc we cannot use latest of the packages below
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.4.0
           export PATH=$PATH:$HOME/go/bin
           go generate .
           go test .

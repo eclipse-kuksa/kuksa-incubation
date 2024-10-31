@@ -28,10 +28,19 @@ if you use `apt`you must manually create a folder called `proto`
 ```
 
 - Run the following command to install the needed GO protocol buffers plugins:
+
 ```
 > go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 > go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 ```
+
+Your `protoc` may not be compatible with the latest version.
+If so you may need to specify specific versions, the examples below works for `3.19`.
+```
+go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.4.0
+```
+
 The plugins will be installed in $GOBIN, defaulting to $GOPATH/bin which is default HOME_DIR/go/bin. It must be in your $PATH for the protocol compiler protoc to find it.
 For linux execute:
 ```

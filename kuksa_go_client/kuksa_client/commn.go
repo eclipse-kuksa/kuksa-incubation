@@ -81,7 +81,7 @@ func (cc *KuksaClientCommWs) startCommunication() error {
 	if cc.Config.Insecure {
 		// Open an insecure websocket
 		serverUrl := url.URL{Scheme: "ws", Host: cc.Config.ServerAddress + ":" + cc.Config.ServerPort}
-		log.Printf("Connecting to " + serverUrl.String())
+		log.Printf("Connecting to %s", serverUrl.String())
 
 		// Connect to the Kuksa Websocket
 		var err error
@@ -94,7 +94,7 @@ func (cc *KuksaClientCommWs) startCommunication() error {
 	} else {
 		// Open a secure websocket
 		serverUrl := url.URL{Scheme: "wss", Host: cc.Config.ServerAddress + ":" + cc.Config.ServerPort}
-		log.Printf("Connecting to " + serverUrl.String())
+		log.Printf("Connecting to %s", serverUrl.String())
 
 		// Load Client cert
 		cert, err := tls.LoadX509KeyPair(cc.Config.CertsDir+"/Client.pem", cc.Config.CertsDir+"/Client.key")
