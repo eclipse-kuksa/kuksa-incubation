@@ -121,7 +121,7 @@ func main() {
 		if err != nil {
 			log.Printf("Set Value Error: %v", err)
 		} else {
-			log.Printf("Vehicle.OBD.DTCList Set: " + valstr)
+			log.Printf("Vehicle.OBD.DTCList Set: %s", valstr)
 		}
 
 		values, err = backend.GetValueFromKuksaVal("Vehicle.OBD.DTCList", "value")
