@@ -17,7 +17,6 @@ use provider_config::ProviderConfig;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::{error::Error, fs};
-use tokio::sync::Mutex;
 
 mod provider_config;
 mod utils;
@@ -51,11 +50,9 @@ async fn handling_zenoh_subscribtion(
     provider_config: Arc<ProviderConfig>,
     session: Arc<Session>,
     metadata_store: MetadataStore,
-    kuksa_client: Arc<Mutex<kuksa::Client>>,
+    mut kuksa_client: kuksa::Client,
 ) {
     info!("Listening on selector: {:?}", provider_config.zenoh.key_exp);
-
-    let mut sub_client = kuksa_client.lock().await;
 
     let provider_config_clone = Arc::clone(&provider_config);
     let subscriber = session
@@ -80,7 +77,7 @@ async fn handling_zenoh_subscribtion(
             let datapoint_update = new_datapoint_for_update(&vss_path, &sample, &store);
 
             debug!("Forwarding: {:#?}", datapoint_update);
-            sub_client
+            kuksa_client
                 .set_current_values(datapoint_update)
                 .await
                 .unwrap();
@@ -91,10 +88,8 @@ async fn handling_zenoh_subscribtion(
 async fn publish_to_zenoh(
     provider_config: Arc<ProviderConfig>,
     session: Arc<Session>,
-    kuksa_client: Arc<Mutex<kuksa::Client>>,
+    mut kuksa_client: kuksa::Client,
 ) {
-    let mut actuation_client = kuksa_client.lock().await;
-
     let attachment = Some(String::from("type=targetValue"));
 
     let vss_paths = Vec::from_iter(provider_config.signals.iter().map(String::as_str));
@@ -114,7 +109,7 @@ async fn publish_to_zenoh(
         vss_paths
     );
 
-    match actuation_client.subscribe_target_values(vss_paths).await {
+    match kuksa_client.subscribe_target_values(vss_paths).await {
         Ok(mut stream) => {
             while let Some(response) = stream.message().await.unwrap() {
                 for update in &response.updates {
@@ -123,7 +118,7 @@ async fn publish_to_zenoh(
                             let vss_path = &entry.path;
 
                             if let Some(publisher) = publishers.get(vss_path.as_str()) {
-                                let buf = match datapoint_to_string(&datapoint) {
+                                let buf = match datapoint_to_string(datapoint) {
                                     Some(v) => v,
                                     None => "null".to_string(),
                                 };
@@ -182,10 +177,11 @@ async fn main() {
 
     let uri = kuksa::Uri::try_from(provider_config.kuksa.databroker_url.as_str())
         .expect("Invalid URI for Kuksa Databroker connection.");
-    let client = Arc::new(Mutex::new(kuksa::Client::new(uri)));
+    let mut client = kuksa::Client::new(uri.clone());
+    let actuation_client = kuksa::Client::new(uri);
 
-    fetch_metadata(
-        client.clone(),
+    client = fetch_metadata(
+        client,
         provider_config.signals.iter().map(|s| s as &str).collect(),
         &metadata_store,
     )
@@ -195,15 +191,13 @@ async fn main() {
         let session = Arc::clone(&zenoh_session);
         let provider_config = Arc::clone(&provider_config);
         let metadata_store = Arc::clone(&metadata_store);
-        let kuksa_client = Arc::clone(&client);
-        handling_zenoh_subscribtion(provider_config, session, metadata_store, kuksa_client)
+        handling_zenoh_subscribtion(provider_config, session, metadata_store, client)
     });
 
     let publisher_handle = tokio::spawn({
         let session = Arc::clone(&zenoh_session);
         let provider_config = Arc::clone(&provider_config);
-        let kuksa_client = Arc::clone(&client);
-        publish_to_zenoh(provider_config, session, kuksa_client)
+        publish_to_zenoh(provider_config, session, actuation_client)
     });
 
     let _ = subscriber_handle.await;
