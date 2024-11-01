@@ -1,0 +1,20 @@
+{
+  "Vehicle.VehicleIdentification.VIN": {
+    "value": "DEADBEEF"
+  },
+  "Vehicle.Cabin.HVAC.Station.Row4.Passenger.FanSpeed": {
+    "value": "41"
+  },
+  "Vehicle.Cabin.Infotainment.Media.Volume": {
+    "value": "22"
+  },
+  "Vehicle.VehicleIdentification.VehicleInteriorColor": {
+    "value": "Black"
+  },
+  "Vehicle.Cabin.Infotainment.HMI.TemperatureUnit": {
+    "value": "C"
+  },
+  "LOL": {
+    "value": "LOL"
+  }
+}
