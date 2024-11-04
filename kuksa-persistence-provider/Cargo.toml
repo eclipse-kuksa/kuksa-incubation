@@ -17,11 +17,10 @@ anyhow = "1.0.40"
 prost-types = "0.11.9"
 tokio = { version="1.40.0",  features = ["full"] }
 
-#Still broken due to closed repo
-#djson = { git="https://github.com/dependix/platform.git" ,  optional = true }
+# TODO: change this to a a github path once available
 djson = { path="../../platform/modules/json-al/djson_rust/" ,  optional = true }
 
-#For testing
+# For testing
 [dev_dependencies]
 tempfile = "3.2.0"
 
