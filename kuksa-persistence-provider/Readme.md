@@ -72,7 +72,7 @@ As the statestore does not make a difference between current and target (actuati
 
 ## Features
 
-* djson: Use a dependable json library. 
+* djson: Use a dependable json library.
   Enable with ```cargo build --features json_djson --no-default-features```
 
 ## Build
