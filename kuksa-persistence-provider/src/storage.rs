@@ -52,7 +52,9 @@ impl Default for FileStorageType {
 }
 
 pub trait Storage {
-    fn new(config: StorageConfig) -> Self where Self: Sized;
+    fn new(config: StorageConfig) -> Self
+    where
+        Self: Sized;
 
     fn get(&self, vsspath: &str) -> Option<&str>;
 

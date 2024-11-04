@@ -23,7 +23,7 @@ djson = { path="../../platform/modules/json-al/djson_rust/" ,  optional = true }
 
 #For testing
 [dev_dependencies]
-tempdir = "0.3.7"
+tempfile = "3.2.0"
 
 [features]
 default = ["json_tinyjson"]

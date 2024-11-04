@@ -34,6 +34,7 @@ impl Storage for FileStorage {
                 let path = filepath.clone();
                 println!("Reading storage from {}", path);
                 let config_str = std::fs::read_to_string(&path).unwrap();
+                println!("config_str {}", config_str);
                 let state: JsonValue = config_str.parse().unwrap();
                 let mut state_copy = state.get::<HashMap<String, JsonValue>>().unwrap().clone();
                 let (tx, rx): (Sender<StoreItem>, Receiver<StoreItem>) = mpsc::channel();
@@ -114,3 +115,115 @@ impl Storage for FileStorage {
 }
 
 impl FileStorage {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{fs, io::Read};
+    use tempfile::{tempfile, Builder};
+
+    const FILEPATH_PREFIX: &str = "/tmp/test_storage";
+
+    const TESTJSON: &str = r#"{
+        "test_key": {
+          "value": "test_value"
+        }
+      }"#;
+
+    #[test]
+    fn test_file_storage_new() {
+        let mut storage_file = Builder::new()
+            .prefix(FILEPATH_PREFIX)
+            .suffix(".json")
+            .tempfile()
+            .unwrap();
+        let filepath = storage_file.path().to_str().unwrap().to_string();
+
+        writeln!(storage_file, "{}", TESTJSON).unwrap();
+
+        let config = StorageConfig {
+            storagetype: StorageType::FileStorageType(FileStorageType {
+                filepath: filepath.clone(),
+            }),
+        };
+
+        let storage = FileStorage::new(config);
+        assert!(storage.get("test_key").is_some());
+        assert_eq!(storage.get("test_key").unwrap(), "test_value");
+    }
+
+    #[test]
+    fn test_file_storage_get() {
+        let mut storage_file = Builder::new()
+            .prefix(FILEPATH_PREFIX)
+            .suffix(".json")
+            .tempfile()
+            .unwrap();
+        let filepath = storage_file.path().to_str().unwrap().to_string();
+
+        writeln!(storage_file, "{}", TESTJSON).unwrap();
+
+        let config = StorageConfig {
+            storagetype: StorageType::FileStorageType(FileStorageType {
+                filepath: filepath.clone(),
+            }),
+        };
+
+        let storage = FileStorage::new(config);
+        assert_eq!(storage.get("test_key").unwrap(), "test_value");
+        assert!(storage.get("non_existent_key").is_none());
+    }
+
+    #[test]
+    fn test_file_storage_set() {
+        // Create an empty temporary file
+        let mut storage_file = Builder::new()
+            .prefix(FILEPATH_PREFIX)
+            .suffix(".json")
+            .tempfile()
+            .unwrap();
+        let filepath = storage_file.path().to_str().unwrap().to_string();
+
+        // let testjson = r#"{}"#;
+        // writeln!(storage_file, "{}", TESTJSON).unwrap();
+        storage_file.write_all(TESTJSON.as_bytes()).unwrap();
+
+        let config = StorageConfig {
+            storagetype: StorageType::FileStorageType(FileStorageType {
+                filepath: filepath.clone(),
+            }),
+        };
+
+        let storage = FileStorage::new(config);
+        storage.set("test_key", "value-test-set").unwrap();
+
+        // Allow some time for the background thread to process the set operation
+        std::thread::sleep(std::time::Duration::from_millis(100));
+
+        let updated_content = fs::read_to_string(filepath).unwrap();
+        print!("updated_content: {}", updated_content);
+        assert!(
+            updated_content
+                == r#"{
+  "test_key": {
+    "value": "value-test-set"
+  }
+}"#
+        );
+    }
+
+    #[test]
+    fn test_file_storage_invalid_path() {
+        let config = StorageConfig {
+            storagetype: StorageType::FileStorageType(FileStorageType {
+                filepath: "/invalid/path/to/storage.json".to_string(),
+            }),
+        };
+
+        let result = std::panic::catch_unwind(|| {
+            FileStorage::new(config);
+        });
+
+        assert!(result.is_err());
+    }
+}

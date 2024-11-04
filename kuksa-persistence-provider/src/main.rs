@@ -13,15 +13,14 @@ mod storage;
 
 use storage::Storage;
 
+use anyhow::{anyhow, Result};
 use clap::Parser;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::{env, path::PathBuf};
-use anyhow::{Result, anyhow};
 
 // Ensure no unsafe code is used
 #[forbid(unsafe_code)]
-
 // Use one of two JSON libraries
 #[cfg(all(feature = "json_tinyjson", feature = "json_djson"))]
 compile_error!(
@@ -104,9 +103,7 @@ fn create_storage_from_cfg(parsed_cfg: &ConfigValue) -> Result<impl storage::Sto
 
     let parsed_storage_type: storage::StorageType = match parsed_cfg_hash["state-storage"] {
         ConfigValue::Object(ref parsed_storage_config) => {
-            match parsed_storage_config
-                .get("type")
-            {
+            match parsed_storage_config.get("type") {
                 // For FileStorageType
                 Some(ConfigValue::String(s)) if *s == "file".to_string() => {
                     // FileStorageType needs filepath otherwise default is
@@ -209,7 +206,7 @@ async fn main() {
 
     let config_path = args.config.unwrap_or_else(|| PathBuf::from("config.json"));
 
-    let parsed_cfg = match parse_cfgfile(&config_path)  {
+    let parsed_cfg = match parse_cfgfile(&config_path) {
         Ok(cfg) => cfg,
         Err(e) => {
             log::error!("Error parsing configuration file: {}", e);
@@ -298,13 +295,13 @@ async fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempdir::TempDir;
     use std::fs::File;
     use std::io::Write;
+    use tempfile::tempdir;
 
     #[test]
     fn test_parse_cfgfile_valid_json_simple() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = tempdir().unwrap();
         let file_path = dir.path().join("config.json");
         let mut file = File::create(&file_path).unwrap();
         writeln!(file, r#"{{"key": "value"}}"#).unwrap();
@@ -312,7 +309,10 @@ mod tests {
         let config = parse_cfgfile(&file_path).unwrap();
         match config {
             ConfigValue::Object(ref obj) => {
-                assert_eq!(obj.get("key"), Some(&ConfigValue::String("value".to_string())));
+                assert_eq!(
+                    obj.get("key"),
+                    Some(&ConfigValue::String("value".to_string()))
+                );
             }
             _ => panic!("Parsed config is not an object"),
         }
@@ -320,7 +320,7 @@ mod tests {
 
     #[test]
     fn test_parse_cfgfile_valid_cfg() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = tempdir().unwrap();
         let file_path = dir.path().join("config.json");
         let mut file = File::create(&file_path).unwrap();
         let test_json_string = r#"
@@ -341,26 +341,39 @@ mod tests {
         let config = parse_cfgfile(&file_path).unwrap();
         match config {
             ConfigValue::Object(ref obj) => {
-                assert_eq!(obj.get("restore-only"), Some(&ConfigValue::Object({
-                    let mut map = HashMap::new();
-                    map.insert("values".to_string(), ConfigValue::Array(vec![
-                        ConfigValue::String("Vehicle.VehicleIdentification.VIN".to_string()),
-                        ConfigValue::String("Vehicle.VehicleIdentification.VehicleInteriorColor".to_string()),
-                    ]));
-                    map.insert("actuators".to_string(), ConfigValue::Array(vec![
-                        ConfigValue::String("Vehicle.Cabin.Infotainment.HMI.TemperatureUnit".to_string()),
-                    ]));
-                    map
-                })));
+                assert_eq!(
+                    obj.get("restore-only"),
+                    Some(&ConfigValue::Object({
+                        let mut map = HashMap::new();
+                        map.insert(
+                            "values".to_string(),
+                            ConfigValue::Array(vec![
+                                ConfigValue::String(
+                                    "Vehicle.VehicleIdentification.VIN".to_string(),
+                                ),
+                                ConfigValue::String(
+                                    "Vehicle.VehicleIdentification.VehicleInteriorColor"
+                                        .to_string(),
+                                ),
+                            ]),
+                        );
+                        map.insert(
+                            "actuators".to_string(),
+                            ConfigValue::Array(vec![ConfigValue::String(
+                                "Vehicle.Cabin.Infotainment.HMI.TemperatureUnit".to_string(),
+                            )]),
+                        );
+                        map
+                    }))
+                );
             }
             _ => panic!("Parsed config is not an object"),
         }
     }
 
-
     #[test]
     fn test_parse_cfgfile_invalid_json_1() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = tempdir().unwrap();
         let file_path = dir.path().join("config.json");
         let mut file = File::create(&file_path).unwrap();
         writeln!(file, r#"{{"key" "value"}}"#).unwrap(); // Invalid JSON
@@ -371,7 +384,7 @@ mod tests {
 
     #[test]
     fn test_parse_cfgfile_invalid_json_unexpeof() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = tempdir().unwrap();
         let file_path = dir.path().join("config.json");
         let mut file = File::create(&file_path).unwrap();
         let test_json_string = r#"{{"key" "value"}"#;
@@ -383,32 +396,50 @@ mod tests {
 
     #[test]
     fn test_create_storage_from_cfg_nofile() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = tempdir().unwrap();
         let file_path = dir.path().join("config.json");
         let mut file = File::create(&file_path).unwrap();
         writeln!(file, r#"{{"key": "value"}}"#).unwrap(); // Invalid JSON
         let mut config = HashMap::new();
         let mut storage_config = HashMap::new();
         storage_config.insert("type".to_string(), ConfigValue::String("file".to_string()));
-        storage_config.insert("path".to_string(), ConfigValue::String(file_path.to_str().unwrap().to_string()));
-        config.insert("state-storage".to_string(), ConfigValue::Object(storage_config));
+        storage_config.insert(
+            "path".to_string(),
+            ConfigValue::String(file_path.to_str().unwrap().to_string()),
+        );
+        config.insert(
+            "state-storage".to_string(),
+            ConfigValue::Object(storage_config),
+        );
 
         let storage = create_storage_from_cfg(&ConfigValue::Object(config));
         assert!(storage.is_ok());
     }
 
-
-
     #[test]
     fn test_collect_vss_paths() {
         let mut config = HashMap::new();
         let mut section = HashMap::new();
-        section.insert("values".to_string(), ConfigValue::Array(vec![ConfigValue::String("path1".to_string()), ConfigValue::String("path2".to_string())]));
+        section.insert(
+            "values".to_string(),
+            ConfigValue::Array(vec![
+                ConfigValue::String("path1".to_string()),
+                ConfigValue::String("path2".to_string()),
+            ]),
+        );
         config.insert("restore-only".to_string(), ConfigValue::Object(section));
 
         let mut restore_current_values: Vec<String> = vec![];
-        collect_vss_paths(&ConfigValue::Object(config), "restore-only", "values", &mut [&mut restore_current_values]);
+        collect_vss_paths(
+            &ConfigValue::Object(config),
+            "restore-only",
+            "values",
+            &mut [&mut restore_current_values],
+        );
 
-        assert_eq!(restore_current_values, vec!["path1".to_string(), "path2".to_string()]);
+        assert_eq!(
+            restore_current_values,
+            vec!["path1".to_string(), "path2".to_string()]
+        );
     }
 }
