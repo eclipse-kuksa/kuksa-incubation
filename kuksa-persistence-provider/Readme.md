@@ -1,12 +1,12 @@
 # KUKSA Persistence Provider
 
-All data in KUKSA is ephemereal. However, in a car there is often data that does not change over the lifetime of a vehicle, and data where you want changes to be persisted over ignition cycles.
+All data in KUKSA is ephemeral. However, in a car there is often data that does not change over the lifetime of a vehicle, and data where you want changes to be persisted over ignition cycles.
 
 This provider can achieve this. It can restore certain values upon startup, either sensor (current) values, or actuations.
 
 An example for one-time restoration of current values are attributes that are maybe not set in a default VSS model deployed to ALL cars of a specific variant, but nevertheless are constant of a specific car, such as the VIN or the Vehicle Color.
 
-This provider can also watch (subscribe) certain current or actuation values. This is useful when interacting with components that do not provide their own persistence management. Assume a climate control UI that can react on unser input and interact with the HVAC system, but is otherwise stateless. By watching and restoring the desired target temperature, the user's preference is saved and restored, without the HVAC UI needing any specific code to handle this.
+This provider can also watch (subscribe) certain current or actuation values. This is useful when interacting with components that do not provide their own persistence management. Assume a climate control UI that can react on user input and interact with the HVAC system, but is otherwise stateless. By watching and restoring the desired target temperature, the user's preference is saved and restored, without the HVAC UI needing any specific code to handle this.
 
 ## Configuration: config.json
 
@@ -40,7 +40,7 @@ Main configuration is in config.json, and example may look like this
 }
 ```
 
-### section restore-only 
+### section restore-only
 
 These elements will be restored from the state store upon startup, but their values will not be watched and updated for changes. You can define whether the current values (values) will be restored or whether a target value is set (actuators).
 
@@ -83,17 +83,16 @@ cargo build --features json_djson --no-default-features
 
 ## Test
 
+Start kuksa databroker with:
+
 ```bash
 docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-databroker:latest --port 55556
 ```
 
+Start kuksa sdk with:
+
 ```bash
 docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-python-sdk/kuksa-client:latest grpc://127.0.0.1:55556
-#
+# Check Vales in cmd
 getValue Vehicle.Cabin.HVAC.Station.Row4.Passenger.FanSpeed
-
-
 ```
-
-# TODO 
-* config mit djson parsen
