@@ -75,7 +75,6 @@ struct CmdLine {
 
 // Parse the configuration file to a ConfigValue
 // The configuration file is expected to be in JSON format
-
 fn parse_cfgfile(path: &PathBuf) -> Result<ConfigValue> {
     let config_str = std::fs::read_to_string(&path)?;
 
