@@ -73,7 +73,9 @@ As the statestore does not make a difference between current and target (actuati
 ## Features
 
 * djson: Use a dependable json library.
+  Check out the repo with the depenable json library at the same level as the parent folder or project folder of this repo.
   Enable with ```cargo build --features json_djson --no-default-features```
+
 
 ## Build
 
