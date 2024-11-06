@@ -14,7 +14,7 @@
   "Vehicle.Cabin.Infotainment.HMI.TemperatureUnit": {
     "value": "C"
   },
-  "LOL": {
-    "value": "LOL"
+  "invalid-value": {
+    "value": "iam-invalid"
   }
 }

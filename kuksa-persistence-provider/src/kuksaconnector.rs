@@ -8,17 +8,15 @@
 * SPDX-License-Identifier: Apache-2.0
 ********************************************************************************/
 
-use crate::storage::{self, StoreItem};
-
 use std::collections::HashMap;
 use std::fmt;
+use std::sync::mpsc::Sender;
+use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 
 use kuksa::proto;
 
-use std::sync::mpsc::Sender;
-
-use std::sync::{Arc, Mutex};
+use crate::storage::{self, StoreItem};
 
 #[derive(Debug)]
 pub struct ParseError {}

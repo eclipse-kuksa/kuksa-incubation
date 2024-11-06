@@ -13,15 +13,48 @@ pub mod filestorage;
 use std::sync::mpsc::Sender;
 
 pub use filestorage::FileStorage;
-use tinyjson::JsonValue;
 
+#[derive(Debug)]
 pub struct StoreItem {
     pub path: String,
     pub value: String,
 }
 
+#[derive(Default, Debug, PartialEq)]
+pub struct StorageConfig {
+    pub storagetype: StorageType,
+}
+
+#[derive(Debug, PartialEq)]
+#[non_exhaustive]
+pub enum StorageType {
+    FileStorageType(FileStorageType),
+    // Add more storage types here
+}
+
+#[derive(Debug, PartialEq)]
+pub struct FileStorageType {
+    pub filepath: String,
+}
+
+impl Default for StorageType {
+    fn default() -> Self {
+        StorageType::FileStorageType(FileStorageType::default())
+    }
+}
+
+impl Default for FileStorageType {
+    fn default() -> Self {
+        FileStorageType {
+            filepath: "storage.json".to_string(),
+        }
+    }
+}
+
 pub trait Storage {
-    fn new(config: &JsonValue) -> Self;
+    fn new(config: StorageConfig) -> Self
+    where
+        Self: Sized;
 
     fn get(&self, vsspath: &str) -> Option<&str>;
 
