@@ -4,7 +4,7 @@ All data in KUKSA is ephemeral. However, in a car there is often data that does 
 
 This provider can achieve this. It can restore certain values upon startup, either sensor (current) values, or actuations.
 
-An example for one-time restoration of current values are attributes that are maybe not set in a default VSS model deployed to ALL cars of a specific variant, but nevertheless are constant of a specific car, such as the VIN or the Vehicle Color.
+An example for one-time restoration of current values are attributes that are maybe not set in a default VSS model deployed to ALL cars of a specific variant, but nevertheless are constant of a specific car, such as the VIN or the vehicle color.
 
 This provider can also watch (subscribe) certain current or actuation values. This is useful when interacting with components that do not provide their own persistence management. Assume a climate control UI that can react on user input and interact with the HVAC system, but is otherwise stateless. By watching and restoring the desired target temperature, the user's preference is saved and restored, without the HVAC UI needing any specific code to handle this.
 
