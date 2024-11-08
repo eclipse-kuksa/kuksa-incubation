@@ -15,11 +15,12 @@ use kuksa::proto::v1::{datapoint::Value, DataType, Datapoint};
 use kuksa::Client;
 use log::warn;
 use prost_types::Timestamp;
-use std::time::{SystemTime, UNIX_EPOCH};
 use std::collections::HashMap;
-use zenoh::{buffers::ZBuf, sample::Sample};
+use std::time::{SystemTime, UNIX_EPOCH};
+use zenoh::bytes::ZBytes;
+use zenoh::sample::Sample;
 
-use crate::utils::{metadata_store::MetadataInfo, zenoh_utils::zbuf_to_string};
+use crate::utils::{metadata_store::MetadataInfo, zenoh_utils::zbytes_to_string};
 
 pub async fn fetch_metadata(
     mut kuksa_client: Client,
@@ -43,20 +44,20 @@ pub async fn fetch_metadata(
     kuksa_client
 }
 
-pub fn new_datapoint(data_type: &DataType, payload: &ZBuf) -> Datapoint {
+pub fn new_datapoint(data_type: &DataType, payload: &ZBytes) -> Datapoint {
     let value = match data_type {
-        DataType::String => Value::String(zbuf_to_string(payload).unwrap()),
-        DataType::Boolean => Value::Bool(zbuf_to_string(payload).unwrap().parse().unwrap()),
+        DataType::String => Value::String(zbytes_to_string(payload).unwrap()),
+        DataType::Boolean => Value::Bool(zbytes_to_string(payload).unwrap().parse().unwrap()),
         DataType::Int8 | DataType::Int16 | DataType::Int32 => {
-            Value::Int32(zbuf_to_string(payload).unwrap().parse().unwrap())
+            Value::Int32(zbytes_to_string(payload).unwrap().parse().unwrap())
         }
-        DataType::Int64 => Value::Int64(zbuf_to_string(payload).unwrap().parse().unwrap()),
+        DataType::Int64 => Value::Int64(zbytes_to_string(payload).unwrap().parse().unwrap()),
         DataType::Uint8 | DataType::Uint16 | DataType::Uint32 => {
-            Value::Uint32(zbuf_to_string(payload).unwrap().parse().unwrap())
+            Value::Uint32(zbytes_to_string(payload).unwrap().parse().unwrap())
         }
-        DataType::Uint64 => Value::Uint64(zbuf_to_string(payload).unwrap().parse().unwrap()),
-        DataType::Float => Value::Float(zbuf_to_string(payload).unwrap().parse().unwrap()),
-        DataType::Double => Value::Double(zbuf_to_string(payload).unwrap().parse().unwrap()),
+        DataType::Uint64 => Value::Uint64(zbytes_to_string(payload).unwrap().parse().unwrap()),
+        DataType::Float => Value::Float(zbytes_to_string(payload).unwrap().parse().unwrap()),
+        DataType::Double => Value::Double(zbytes_to_string(payload).unwrap().parse().unwrap()),
         // TODO: Add cases for array types
         _ => Value::String(format!("Unsupported type: {:?}", data_type)),
     };
@@ -86,7 +87,7 @@ pub fn new_datapoint_for_update(
         path.to_string(),
         metadata_store
             .get(path)
-            .map(|metadata_info| new_datapoint(&metadata_info.data_type, &sample.value.payload))
+            .map(|metadata_info| new_datapoint(&metadata_info.data_type, sample.payload()))
             .unwrap(),
     );
 

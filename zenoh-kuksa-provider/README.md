@@ -39,8 +39,10 @@ Here you can set the following things:
 - List of VSS paths in the Databroker to subscribe to
 - [Key expression](https://zenoh.io/docs/manual/abstractions/) for the provider to subscribe to in the Zenoh network
 (e.g. Vehicle/Body/Horn/IsActive)
-- Enable or disable peer discovery (scouting)
-- URL of a Zenoh router (if not using peer discovery)
+- Zenoh (client) configuration, including
+  - setting the connection _mode_ (`client`, `peer`)
+  - enabling or disabling peer discovery (scouting)
+  - endpoints to connect to (when using _client_ mode), e.g. a Zenoh router
 
 ## Build and run the application
 

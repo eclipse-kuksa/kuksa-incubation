@@ -11,33 +11,14 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-use zenoh::buffers::ZBuf;
-use zenoh::prelude::*;
+use zenoh::{bytes::ZBytes, sample::Sample};
 
-pub fn split_once(s: &str, c: char) -> (&[u8], &[u8]) {
-    let s_bytes = s.as_bytes();
-    match s.find(c) {
-        Some(index) => {
-            let (l, r) = s_bytes.split_at(index);
-            (l, &r[1..])
-        }
-        None => (s_bytes, &[]),
-    }
+pub fn zbytes_to_string(zbuf: &ZBytes) -> Result<String, std::str::Utf8Error> {
+    zbuf.try_to_string().map(|v| v.to_string())
 }
 
-pub fn zbuf_to_string(zbuf: &ZBuf) -> Result<String, std::str::Utf8Error> {
-    let mut bytes = Vec::new();
-    for zslice in zbuf.zslices() {
-        bytes.extend_from_slice(zslice.as_slice());
-    }
-    String::from_utf8(bytes).map_err(|e| e.utf8_error())
-}
-
-pub fn extract_attachment_as_string(sample: &Sample) -> String {
-    if let Some(attachment) = sample.attachment() {
-        let bytes = attachment.iter().next().unwrap();
-        String::from_utf8_lossy(bytes.1.as_slice()).to_string()
-    } else {
-        String::new()
-    }
+pub fn extract_attachment_as_string(sample: &Sample) -> Option<String> {
+    sample
+        .attachment()
+        .and_then(|a| a.try_to_string().map(|v| v.to_string()).ok())
 }
