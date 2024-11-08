@@ -12,24 +12,27 @@
  ********************************************************************************/
 
 use clap::Parser;
-use log::{debug, info};
+use log::{debug, error, info, warn};
 use provider_config::ProviderConfig;
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::{error::Error, fs};
+use std::{fs, process};
+use zenoh::pubsub::Publisher;
+use zenoh::Session;
 
 mod provider_config;
 mod utils;
 
 use utils::kuksa_utils::{datapoint_to_string, fetch_metadata, new_datapoint_for_update};
 use utils::metadata_store::{create_metadata_store, MetadataStore};
-use utils::zenoh_utils::{extract_attachment_as_string, split_once};
-use zenoh::prelude::r#async::*;
+use utils::zenoh_utils::extract_attachment_as_string;
+
+const VEHCILE_KEY_EXPR: &str = "Vehicle/**";
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Path to a valid json5 configuration file
+    /// Path to a valid json5 configuration file.
     #[arg(
         short,
         long,
@@ -39,69 +42,59 @@ struct Args {
     config: String,
 }
 
-fn read_config(path: &str) -> Result<ProviderConfig, Box<dyn Error>> {
-    let config_str = fs::read_to_string(path)?;
-    let config = json5::from_str(&config_str)?;
+impl Args {
+    fn read_config(&self) -> Result<ProviderConfig, Box<dyn std::error::Error>> {
+        let config_str = fs::read_to_string(&self.config)?;
+        let config = json5::from_str(&config_str)?;
 
-    Ok(config)
+        Ok(config)
+    }
 }
 
-async fn handling_zenoh_subscribtion(
-    provider_config: Arc<ProviderConfig>,
+async fn handling_zenoh_subscription(
     session: Arc<Session>,
     metadata_store: MetadataStore,
     mut kuksa_client: kuksa::Client,
 ) {
-    info!("Listening on selector: {:?}", provider_config.zenoh.key_exp);
+    info!("Listening on selector: {:?}", VEHCILE_KEY_EXPR);
 
-    let provider_config_clone = Arc::clone(&provider_config);
-    let subscriber = session
-        .declare_subscriber(provider_config_clone.zenoh.key_exp.clone())
-        .res()
-        .await
-        .unwrap();
+    let subscriber = session.declare_subscriber(VEHCILE_KEY_EXPR).await.unwrap();
 
     let store = metadata_store.lock().await;
 
     while let Ok(sample) = subscriber.recv_async().await {
-        let vss_path = sample.key_expr.replace("/", ".").to_string();
+        let vss_path = sample.key_expr().replace("/", ".").to_string();
 
         debug!(
-            "Received ('{}': '{}' with attachment: {:?})",
-            &vss_path, sample.value, sample.attachment
+            "Received ('{}': '{:?}' with attachment: {:?})",
+            &vss_path,
+            sample.payload(),
+            sample.attachment()
         );
 
-        let field_type = extract_attachment_as_string(&sample);
-
-        if field_type == "currentValue" {
-            let datapoint_update = new_datapoint_for_update(&vss_path, &sample, &store);
-
-            debug!("Forwarding: {:#?}", datapoint_update);
-            kuksa_client
-                .set_current_values(datapoint_update)
-                .await
-                .unwrap();
+        if let Some(field_type) = extract_attachment_as_string(&sample) {
+            if field_type == "currentValue" {
+                let datapoint_update = new_datapoint_for_update(&vss_path, &sample, &store);
+                debug!("Forwarding: {:#?}", datapoint_update);
+                if let Err(e) = kuksa_client.set_current_values(datapoint_update).await {
+                    error!("failed to publish current value to Kuksa Databroker: {e}");
+                }
+            }
         }
     }
 }
 
 async fn publish_to_zenoh(
-    provider_config: Arc<ProviderConfig>,
+    provider_config: ProviderConfig,
     session: Arc<Session>,
     mut kuksa_client: kuksa::Client,
 ) {
-    let attachment = Some(String::from("type=targetValue"));
-
     let vss_paths = Vec::from_iter(provider_config.signals.iter().map(String::as_str));
 
-    let mut publishers: HashMap<String, zenoh::publication::Publisher> = HashMap::new();
+    let mut publishers: HashMap<String, Publisher<'_>> = HashMap::new();
     for vss_path in &vss_paths {
         let zenoh_key = vss_path.replace(".", "/");
-        let publisher = session
-            .declare_publisher(zenoh_key.clone())
-            .res()
-            .await
-            .unwrap();
+        let publisher = session.declare_publisher(zenoh_key.clone()).await.unwrap();
         publishers.insert(vss_path.to_string(), publisher);
     }
     info!(
@@ -118,26 +111,20 @@ async fn publish_to_zenoh(
                             let vss_path = &entry.path;
 
                             if let Some(publisher) = publishers.get(vss_path.as_str()) {
-                                let buf = match datapoint_to_string(datapoint) {
-                                    Some(v) => v,
-                                    None => "null".to_string(),
-                                };
-
-                                let mut put = publisher.put(buf.clone());
-
-                                // Attachments look like this: "key1=value1&key2=value2"
-                                if let Some(attachment) = &attachment {
-                                    put = put.with_attachment(
-                                        std::iter::once(attachment)
-                                            .map(|pair| split_once(pair, '='))
-                                            .collect(),
-                                    );
+                                if let Some(value) = datapoint_to_string(datapoint) {
+                                    if let Err(e) =
+                                        publisher.put(value).attachment("targetValue").await
+                                    {
+                                        warn!(
+                                            "Failed to publish target value to Zenoh network: {e}"
+                                        );
+                                    } else {
+                                        debug!(
+                                            "Published target value [signal: {}] to Zenoh network",
+                                            vss_path
+                                        );
+                                    }
                                 }
-                                put.res().await.unwrap();
-                                debug!(
-                                    "Published data: {} to topic: {} with attachment: {:?}",
-                                    buf, vss_path, attachment
-                                );
                             }
                         }
                     }
@@ -152,26 +139,19 @@ async fn publish_to_zenoh(
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize the logger
     env_logger::init();
     let args = Args::parse();
+    let provider_config = args.read_config().inspect_err(|e| {
+        error!("Failed to open configuration file [{}]: {e}", args.config);
+        process::exit(1);
+    })?;
 
-    let mut provider_config = match read_config(&args.config) {
-        Ok(provider_config) => provider_config,
-        Err(err) => {
-            panic!(
-                "Failed to open configuration file at path {}, {}",
-                &args.config, err
-            );
-        }
-    };
-    provider_config.remove_duplicate_active_signals();
-    let provider_config = Arc::new(provider_config);
-
-    let zenoh_session_config = provider_config.to_zenoh_config().unwrap();
-
-    let zenoh_session = Arc::new(zenoh::open(zenoh_session_config).res().await.unwrap());
+    let zenoh_session = zenoh::open(provider_config.zenoh_config.to_owned())
+        .await
+        .map(Arc::new)
+        .map_err(|e| e as Box<dyn std::error::Error>)?;
 
     let metadata_store = create_metadata_store();
 
@@ -189,17 +169,16 @@ async fn main() {
 
     let subscriber_handle = tokio::spawn({
         let session = Arc::clone(&zenoh_session);
-        let provider_config = Arc::clone(&provider_config);
         let metadata_store = Arc::clone(&metadata_store);
-        handling_zenoh_subscribtion(provider_config, session, metadata_store, client)
+        handling_zenoh_subscription(session, metadata_store, client)
     });
 
     let publisher_handle = tokio::spawn({
         let session = Arc::clone(&zenoh_session);
-        let provider_config = Arc::clone(&provider_config);
         publish_to_zenoh(provider_config, session, actuation_client)
     });
 
     let _ = subscriber_handle.await;
     let _ = publisher_handle.await;
+    Ok(())
 }
