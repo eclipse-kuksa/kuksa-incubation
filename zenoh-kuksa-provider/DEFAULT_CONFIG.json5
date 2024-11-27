@@ -14,7 +14,7 @@
 {
     // Zenoh (client) configuration
     zenoh_config: {
-        /// The node's mode (router, peer or client)
+        // The node's mode (router, peer or client)
         mode: "peer",
         connect: {
             endpoints: [
