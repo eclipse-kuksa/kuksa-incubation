@@ -28,6 +28,7 @@ class Kuksa_Client():
     # Constructor
     def __init__(self, config):
         print("Init kuksa client...")
+        self.config = config
         if "kuksa_val" not in config:
             print("kuksa_val section missing from configuration, exiting")
             sys.exit(-1)
@@ -38,8 +39,7 @@ class Kuksa_Client():
 # Christophers approach on sending Data to Kuksa Server
     def setTelemetryData(self, teleData):
         dataDictionary = {}
-
-        kuksaConfig = config['kuksa_val']
+        kuksaConfig = self.config['kuksa_val']
         with VSSClient(kuksaConfig.get('host'), kuksaConfig.getint('port')) as client:
             for x, y in teleData.items():
                 dataDictionary.update({
@@ -52,6 +52,7 @@ class carTelemetry_Client():
 
     def __init__(self, config, consumer):
         print("Init carTelemetry client...")
+        self.consumer = consumer
         if "listenerIPAddr" not in config:
             print("listenerIPAddr section missing from configuration, exiting")
             sys.exit(-1)
@@ -90,6 +91,7 @@ class carTelemetry_Client():
                 packetID = packet.m_header.m_packet_id
                 # player carIndex
                 carIndex = packet.m_header.m_player_car_index
+                print(packetID)
                 # Check for telemetry data - packet ID 6.
                 if (packetID == 6):
 

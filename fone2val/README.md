@@ -12,7 +12,9 @@ The [`carTelemetry_feeder.ini`](./config/carTelemetry_feeder.ini)  contains `kuk
 
 Before starting the [F1 feeder](./carTelemetry_feeder.py), you need to start the `kuksa.val databroker` docker container by running the following command in the main project folder:
 ```
-docker run -it -v ./VSS:/VSS --rm --net=host -p 127.0.0.1:8090:8090 -e LOG_LEVEL=ALL ghcr.io/eclipse/kuksa.val/databroker:master --insecure --vss /VSS/vss.json
+docker run -it -v ./VSS:/VSS --rm --net=host -p 127.0.0.1:8090:8090 -e LOG_LEVEL=ALL ghcr.io/eclipse/kuksa.val/databroker@sha256:07798c91368cc5de0bce7fc90e21dc22138a313bdb2778fcb99100a786945661 --insecure --vss /VSS/vss.json
+
+
 ```
 This VSS folder, contains a custom vss.json file for this particular game.
 ## Install dependencies and execution
@@ -23,22 +25,14 @@ General Information: This Project was run on an Ubuntu VM and created in coopera
 ```
 a. The F1 telemetry port/IP number for communication has to be updated in the ./config/carTelemetry_feeder.ini file.
 
-	> IP address of the Host/VM for example 192.168.178.154
-	> Same with the Port: fore example 20778
+	> IP address of the Host/VM for example 192.168.178.154 [listenerIPAddr] host
+	> Same with the Port: fore example 20778 [PS5_UDPort] port
 
-b. The listenerIPAddr of the host/VM a also needs to be updated in the ./config/carTelemetry_feeder.ini file.
-
-	> It has to match with the given IP in step a.
-
-c. The PS5_UDPPort of the host/VM a also needs to be updated in the ./config/carTelemetry_feeder.ini file.
-
-	> It has to match with the given Port in step a.
-
-d. kuksa.val IP for the VSSClient has to be updated in the ./config/carTelemetry_feeder.ini file.
+b. kuksa.val IP for the VSSClient has to be updated in the ./config/carTelemetry_feeder.ini file.
 
 	> Normally set to 127.0.0.1.
 
-e. kuksa.val port for the VSSClient has to be updated in the ./config/carTelemetry_feeder.ini file.
+c. kuksa.val port for the VSSClient has to be updated in the ./config/carTelemetry_feeder.ini file.
 
 	> Normaly set to 55555.
 ```
