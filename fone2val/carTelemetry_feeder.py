@@ -23,7 +23,7 @@ from telemetry_f1_2021.listener import TelemetryListener
 scriptDir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(scriptDir, "../../"))
 
-TelemetryPacketID_EngineSpeed = 6
+TelemetryPacketID_Engine = 6
 TelemetryPacketID_CarStatus = 7
 TelemetryPacketID_CarDamage = 10
 TelemetryPacketID_LapTime = 2
@@ -68,7 +68,7 @@ class carTelemetry_Client():
         self.carTelemetry = {}
         self.running = True
 
-        self.packet_Counter_Dict = { TelemetryPacketID_EngineSpeed:0, TelemetryPacketID_CarStatus:0, TelemetryPacketID_CarDamage:0, TelemetryPacketID_LapTime:0}
+        self.packet_Counter_Dict = { TelemetryPacketID_Engine:0, TelemetryPacketID_CarStatus:0, TelemetryPacketID_CarDamage:0, TelemetryPacketID_LapTime:0}
 
         self.thread = threading.Thread(target=self.loop, args=())
         self.thread.start()
@@ -91,8 +91,6 @@ class carTelemetry_Client():
             try:
                 # listen to the data via UDP channel
                 packet = listener.get()
-                packet = listener.get()
-                packet = listener.get()
 
                 # Update packet ID
                 packetID = packet.m_header.m_packet_id
@@ -100,8 +98,8 @@ class carTelemetry_Client():
                 carIndex = packet.m_header.m_player_car_index
                 # Check for telemetry data - packet ID 6.
                 carTelemetry = {}
-                if (packetID == TelemetryPacketID_EngineSpeed):
-                    if(self.packet_Counter_Dict[telemetry_packet_id_enginespeed] == 2):
+                if (packetID == TelemetryPacketID_Engine):
+                    if(self.packet_Counter_Dict[TelemetryPacketID_Engine] == 2):
                         EngineRPM = packet.m_car_telemetry_data[carIndex].m_engine_rpm
                         Speed = packet.m_car_telemetry_data[carIndex].m_speed
                         
@@ -111,9 +109,9 @@ class carTelemetry_Client():
                         # Set the data to the KUKSA_VAL
                         self.consumer.setTelemetryData(carTelemetry)
 
-                        self.packet_Counter_Dict[telemetrypacketid_enginespeed] = 0
+                        self.packet_Counter_Dict[TelemetryPacketID_Engine] = 0
                     else:
-                        self.packet_Counter_Dict[telemetrypacketid_enginespeed] += 1 
+                        self.packet_Counter_Dict[TelemetryPacketID_Engine] += 1 
                 elif (packetID == TelemetryPacketID_CarStatus):  # car status data packet
                     if(self.packet_Counter_Dict[TelemetryPacketID_CarStatus] == 2):
                         fuelInTank = packet.m_car_status_data[carIndex].m_fuel_in_tank
@@ -122,9 +120,9 @@ class carTelemetry_Client():
 
                         carTelemetry['Vehicle.FuelLevel'] = Datapoint(int(fuelInPercent*100))
                         self.consumer.setTelemetryData(carTelemetry)
-                        self.packet_Counter_Dict[telemetrypacketid_CarStatus] = 0
+                        self.packet_Counter_Dict[TelemetryPacketID_CarStatus] = 0
                     else:
-                        self.packet_Counter_Dict[telemetrypacketid_CarStatus] += 1
+                        self.packet_Counter_Dict[TelemetryPacketID_CarStatus] += 1
 
                 elif (packetID == TelemetryPacketID_CarDamage):  # car dmg packet
                     if(self.packet_Counter_Dict[TelemetryPacketID_CarDamage] == 2):
