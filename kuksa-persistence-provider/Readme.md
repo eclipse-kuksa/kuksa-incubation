@@ -73,28 +73,60 @@ As the statestore does not make a difference between current and target (actuati
 ## Features
 
 * djson: Use a dependable json library.
-  Check out the repo with the depenable json library at the same level as the parent folder or project folder of this repo.
-  Enable with ```cargo build --features json_djson --no-default-features```
+  * Check out the repo with the depenable json library at the same level as the parent folder or project folder of this repo.
+  * Edit `Cargo.toml` and uncomment the following lines
+
+    ```toml
+    djson = { path="../../platform/modules/json-al/djson_rust/" ,  optional = true } # Uncommment to use djson
+
+    # ... 
+
+    json_djson = [ "dep:djson","dep:tinyjson"  ]   # Uncommment to use djson
+    ```
+  * Install rust nightly which is needed for djson at the moment [11/2024]
+    ```bash
+    rustup toolchain install nightly
+    rustup default nightly
+    ```
+  * Enable with ```cargo build --features json_djson --no-default-features``````
 
 
 ## Build
 
 ```bash
+cargo build 
+# with features, see above for prerequisites
 cargo build --features json_djson --no-default-features
-```
 
 ## Test
 
-Start kuksa databroker with:
+1) Check for empty data point after startup
+   
+    * In Terminal A): Start kuksa databroker with:
 
-```bash
-docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-databroker:latest --port 55556
-```
+        ```bash
+        docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-databroker:latest --port 55556
+        ```
 
-Start kuksa sdk with:
+    * In Terminal B) Start kuksa sdk with:
 
-```bash
-docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-python-sdk/kuksa-client:latest grpc://127.0.0.1:55556
-# Check Vales in cmd
-getValue Vehicle.Cabin.HVAC.Station.Row4.Passenger.FanSpeed
-```
+        ```bash
+        docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-python-sdk/kuksa-client:latest grpc://127.0.0.1:55556
+        # Check Vales in cmd
+        getValue Vehicle.Cabin.HVAC.Station.Row4.Passenger.FanSpeed
+        ```
+
+    * In Terminal C) Start kuksa persistency provider with:
+
+        ```bash
+        cargo run
+        ```
+
+2) Set data point which is stored by persistency provider
+    * In Terminal B) :
+
+        ```bash
+        # Set Vales in cmd
+        setValue Vehicle.Cabin.HVAC.Station.Row4.Passenger.FanSpeed 40
+        ```
+3) Restart and check if datapoint with old value is restored by persistency provider
