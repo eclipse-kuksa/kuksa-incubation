@@ -18,7 +18,7 @@ prost-types = "0.11.9"
 tokio = { version="1.40.0",  features = ["full"] }
 
 # TODO: change this to a a github path once available
-djson = { path="../../platform/modules/json-al/djson_rust/" ,  optional = true }
+# djson = { path="../../platform/modules/json-al/djson_rust/" ,  optional = true } # Uncomment to use djson lib
 
 # For testing
 [dev_dependencies]
@@ -27,5 +27,5 @@ tempfile = "3.2.0"
 [features]
 default = ["json_tinyjson"]
 # use a dependable json library, this still requires tiny-json for writing
-json_djson = [ "dep:djson","dep:tinyjson"  ]
+# json_djson = [ "dep:djson","dep:tinyjson"  ] # Uncomment to use djson lib
 json_tinyjson = [ "dep:tinyjson" ]
