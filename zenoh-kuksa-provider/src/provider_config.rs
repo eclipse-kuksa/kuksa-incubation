@@ -11,88 +11,51 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-use log::error;
+use std::collections::HashSet;
+
 use serde::{Deserialize, Serialize};
-use zenoh::config::Config;
-use zenoh::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProviderConfig {
-    pub zenoh: ZenohConfig,
+    pub zenoh_config: zenoh::config::Config,
     pub kuksa: KuksaConfig,
-    pub signals: Vec<String>,
+    pub signals: HashSet<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ZenohConfig {
-    pub mode: String,
-    pub connect: Vec<String>,
-    pub key_exp: String,
-    pub scouting: ScoutingConfig,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ScoutingConfig {
-    pub multicast: MulticastConfig,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct MulticastConfig {
-    pub enabled: bool,
-    pub interface: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct KuksaConfig {
     pub databroker_url: String,
 }
 
-impl ProviderConfig {
-    pub fn to_zenoh_config(&self) -> Result<Config, String> {
-        let mut config = Config::default();
+#[cfg(test)]
+mod tests {
+    use super::ProviderConfig;
 
-        let mode = match self.zenoh.mode.as_str() {
-            "peer" => WhatAmI::Peer,
-            "client" => WhatAmI::Client,
-            "router" => {
-                error!("Router is not a valid Zenoh mode for runnig the provider");
-                return Err("Invalid Zenoh mode".into());
-            }
-            _ => {
-                error!("Invalid Zenoh mode specified in config");
-                return Err("Invalid Zenoh mode".into());
-            }
-        };
-        config.set_mode(Some(mode)).unwrap();
-
-        if self.zenoh.scouting.multicast.enabled {
-            config.scouting.multicast.set_enabled(Some(true)).unwrap();
-
-            config
-                .scouting
-                .multicast
-                .set_interface(Some(String::from(&self.zenoh.scouting.multicast.interface)))
-                .unwrap();
-
-            config.scouting.multicast.autoconnect();
-        } else {
-            config.scouting.multicast.set_enabled(Some(false)).unwrap();
-            if self.zenoh.connect.is_empty() {
-                error!("Configuration error: Scouting is disabled and no Zenoh router connection string provided.
-                        Either enable scouting or specify a valid connection string in the configuration.");
-                return Err("Invalid connection configuration.".into());
-            } else {
-                for endpoint in &self.zenoh.connect {
-                    config.connect.endpoints.push(endpoint.parse().unwrap());
-                }
-            }
+    #[test]
+    fn test_read_config() {
+        let conf = r#"
+        {
+            zenoh_conf: {
+                mode: "client",
+                connect: {
+                    endpoints: [
+                        "tcp/zenoh-router:7447",
+                    ],
+                },
+            },
+            kuksa: {
+                databroker_url: "https://localhost:55555",
+            },
+            signals: [
+                'Vehicle.Body.Horn.IsActive',
+                'Vehicle.Body.Horn.IsActive'
+            ],
         }
+        "#;
 
-        Ok(config)
-    }
-
-    pub fn remove_duplicate_active_signals(&mut self) {
-        let mut seen = std::collections::HashSet::new();
-        self.signals.retain(|signal| seen.insert(signal.clone()));
+        let config: ProviderConfig = json5::from_str(conf).expect("failed to deserialize JSON5");
+        assert!(config.signals.len() == 1);
+        assert_eq!(config.kuksa.databroker_url, "https://localhost:55555");
+        assert_eq!(config.zenoh_config.get_json("mode").unwrap(), "\"client\"");
     }
 }
