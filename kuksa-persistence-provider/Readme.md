@@ -79,7 +79,7 @@ As the statestore does not make a difference between current and target (actuati
     ```toml
     djson = { path="../../platform/modules/json-al/djson_rust/" ,  optional = true } # Uncommment to use djson
 
-    # ... 
+    # ...
 
     json_djson = [ "dep:djson","dep:tinyjson"  ]   # Uncommment to use djson
     ```
@@ -94,14 +94,14 @@ As the statestore does not make a difference between current and target (actuati
 ## Build
 
 ```bash
-cargo build 
+cargo build
 # with features, see above for prerequisites
 cargo build --features json_djson --no-default-features
 
 ## Test
 
 1) Check for empty data point after startup
-   
+
     * In Terminal A): Start kuksa databroker with:
 
         ```bash
