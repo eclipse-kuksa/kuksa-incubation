@@ -12,7 +12,7 @@ The [`carTelemetry_feeder.ini`](./config/carTelemetry_feeder.ini)  contains `kuk
 
 Before starting the [F1 feeder](./carTelemetry_feeder.py), you need to start the `kuksa.val databroker` docker container by running the following command in the main project folder:
 ```
-docker run -it -v ./VSS:/VSS --rm --net=host -p 127.0.0.1:8090:8090 -e LOG_LEVEL=ALL ghcr.io/eclipse/kuksa.val/databroker@sha256:07798c91368cc5de0bce7fc90e21dc22138a313bdb2778fcb99100a786945661 --insecure --vss /VSS/vss.json
+docker run -it -v ./VSS:/VSS --rm --net=host -p 127.0.0.1:8090:8090 -e LOG_LEVEL=ALL ghcr.io/eclipse/kuksa.val/databroker --insecure --vss /VSS/vss.json
 
 
 ```
