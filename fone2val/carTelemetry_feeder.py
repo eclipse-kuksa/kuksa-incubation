@@ -100,6 +100,7 @@ class carTelemetry_Client():
                 carTelemetry = {}
                 if(packetID in self.packet_Counter_Dict and self.packet_Counter_Dict[packetID] == 2):
                     if (packetID == TelemetryPacketID_Engine): # engine packet
+                        
                         # Get data
                         EngineRPM = packet.m_car_telemetry_data[carIndex].m_engine_rpm
                         Speed = packet.m_car_telemetry_data[carIndex].m_speed
@@ -109,6 +110,7 @@ class carTelemetry_Client():
                         carTelemetry['Vehicle.RPM'] = Datapoint(EngineRPM)
 
                     elif (packetID == TelemetryPacketID_CarStatus):  # car status packet
+                        
                         # Get data
                         fuelInTank = packet.m_car_status_data[carIndex].m_fuel_in_tank
                         fuelCapacity = packet.m_car_status_data[carIndex].m_fuel_capacity
