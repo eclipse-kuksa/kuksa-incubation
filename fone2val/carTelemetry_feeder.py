@@ -42,7 +42,7 @@ class Kuksa_Client():
 
 
     def shutdown(self):
-        self.stop()
+        self.client.stop()
 
 # Christophers approach on sending Data to Kuksa Server
     def setTelemetryData(self, teleData):
