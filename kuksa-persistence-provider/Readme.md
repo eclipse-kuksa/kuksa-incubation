@@ -83,20 +83,27 @@ As the statestore does not make a difference between current and target (actuati
 
     json_djson = [ "dep:djson","dep:tinyjson"  ]   # Uncommment to use djson
     ```
+
   * Install rust nightly which is needed for djson at the moment [11/2024]
-    ```bash
+
+  * ```bash
     rustup toolchain install nightly
     rustup default nightly
     ```
-  * Enable with ```cargo build --features json_djson --no-default-features``````
 
+  * Enable with ```cargo build --features json_djson --no-default-features```
 
 ## Build
 
 ```bash
 cargo build
-# with features, see above for prerequisites
+```
+
+alternatively, with features: see above for prerequisites
+
+```bash
 cargo build --features json_djson --no-default-features
+```
 
 ## Test
 
@@ -126,7 +133,8 @@ cargo build --features json_djson --no-default-features
     * In Terminal B) :
 
         ```bash
-        # Set Vales in cmd
+        # Set Values in cmd
         setValue Vehicle.Cabin.HVAC.Station.Row4.Passenger.FanSpeed 40
         ```
+
 3) Restart and check if datapoint with old value is restored by persistency provider
