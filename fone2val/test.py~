@@ -24,7 +24,7 @@ from threading import Lock
 scriptDir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(scriptDir, "../../"))
 
-# telemetry packet ids
+# packet ids
 TelemetryPacketID_Engine = 6
 TelemetryPacketID_CarStatus = 7
 TelemetryPacketID_CarDamage = 10
@@ -90,7 +90,7 @@ class carTelemetry_Client:
         self.thread = threading.Thread(target=self.loop, args=())
         self.thread.start()
 
-    def get_next_packet(self):
+    def getNextPacket(self):
         while self.running:
             try:
                 # listen to the data via UDP channel
@@ -123,11 +123,11 @@ class carTelemetry_Client:
 
         # init threads to process telemetry data
         self.listener = TelemetryListener(port=int(udp_port), host=listener_ip)
-        thread_get_next_packet = threading.Thread(target=self.get_next_packet)
-        thread_initPacketProcessing = threading.Thread(target=self.initPacketProcessing)
-        thread_get_next_packet.start()
+        thread_getNextPacket = threading.Thread(target=getNextPacket)
+        thread_initPacketProcessing = threading.Thread(target=initPacketProcessing)
+        thread_getNextPacket.start()
         thread_initPacketProcessing.start()
-        thread_get_next_packet.join()
+        thread_getNextPacket.join()
         thread_initPacketProcessing.join()
 
     def processTelemetryPacket_Base(self, telemetryPacket):
@@ -191,12 +191,10 @@ class carTelemetry_Client:
     def initPacketProcessing(self):
         while self.running:
             try:
-                # Initializing variables
                 packetID = None
                 packet = None
-                # Lock datastructures
                 with self.datastructure_lock:
-                    # Update packet ID and get dependend packet
+                    # Update packet ID
                     if len(self.list_for_Ids) > 0:
                         packetID = self.list_for_Ids.pop()
                         packet = self.id_To_LastPacket[packetID]
