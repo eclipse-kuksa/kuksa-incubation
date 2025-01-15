@@ -117,7 +117,7 @@ class carTelemetry_Client():
                         fuelInPercent = int((fuelInTank/fuelCapacity)*100)
 
                         # Store data
-                        carTelemetry['Vehicle.FuelLevel'] = Datapoint(fuelInPercent))
+                        carTelemetry['Vehicle.FuelLevel'] = Datapoint(fuelInPercent)
 
                     elif (packetID == TelemetryPacketID_CarDamage):  # car dmg packet
 
