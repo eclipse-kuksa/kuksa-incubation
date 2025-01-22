@@ -1,0 +1,104 @@
+VERSION ""
+
+
+NS_ : 
+    NS_DESC_
+    CM_
+    BA_DEF_
+    BA_
+    VAL_
+    CAT_DEF_
+    CAT_
+    FILTER
+    BA_DEF_DEF_
+    EV_DATA_
+    ENVVAR_DATA_
+    SGTYPE_
+    SGTYPE_VAL_
+    BA_DEF_SGTYPE_
+    BA_SGTYPE_
+    SIG_TYPE_REF_
+    VAL_TABLE_
+    SIG_GROUP_
+    SIG_VALTYPE_
+    SIGTYPE_VALTYPE_
+    BO_TX_BU_
+    BA_DEF_REL_
+    BA_REL_
+    BA_DEF_DEF_REL_
+    BU_SG_REL_
+    BU_EV_REL_
+    BU_BO_REL_
+    SG_MUL_VAL_
+
+BS_:
+
+BU_:
+
+
+BO_ 2024 OBD2_ISOTP: 8 Vector__XXX
+ SG_ S M : 15|8@0+ (1,0) [0|15] "" Vector__XXX
+ SG_ S1PID m65M : 15|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ S1PID00_PIDsSupported_01_11 m0 : 15|32@0+ (1,0) [0|4294967295] "" Vector__XXX
+ SG_ S1PID01_MonitorStatus m1 : 15|32@0+ (1,0) [0|4294967295] "" Vector__XXX
+ SG_ S1PID02_FreezeDTC m2 : 15|16@0+ (1,0) [0|65535] "" Vector__XXX
+ SG_ S1PID03_FuelSystemStatus m3 : 15|16@0+ (1,0) [0|65535] "" Vector__XXX
+ SG_ S1PID04_EngineLoad m4 : 15|8@0+ (0.39216,0) [0|100] "%" Vector__XXX
+ SG_ S1PID05_EngineCoolantTemp m5 : 15|8@0+ (1,-40) [-40|215] "degC" Vector__XXX
+ SG_ S1PID06_ShortFuelTrimBank1 m6 : 15|8@0+ (0.78125,-100) [-100|99.21875] "%" Vector__XXX
+ SG_ S1PID07_LongFuelTrimBank1 m7 : 15|8@0+ (0.78125,-100) [-100|99.21875] "%" Vector__XXX
+ SG_ S1PID08_ShortFuelTrimBank2 m8 : 15|8@0+ (0.78125,-100) [-100|99.21875] "%" Vector__XXX
+ SG_ S1PID09_LongFuelTrimBank2 m9 : 15|8@0+ (0.78125,-100) [-100|99.21875] "%" Vector__XXX
+ SG_ S1PID0A_FuelPressure m10 : 15|8@0+ (3,0) [0|765] "kPa" Vector__XXX
+ SG_ S1PID0B_IntakeManiAbsPress m11 : 15|8@0+ (1,0) [0|255] "kPa" Vector__XXX
+ SG_ S1PID0C_EngineRPM m12 : 15|16@0+ (0.25,0) [0|16383.75] "rpm" Vector__XXX
+ SG_ S1PID0D_VehicleSpeed m13 : 15|8@0+ (1,0) [0|255] "km/h" Vector__XXX
+ SG_ S1PID0E_TimingAdvance m14 : 15|8@0+ (0.5,-64) [-64|63.5] "deg before TDC" Vector__XXX
+ SG_ S1PID0F_IntakeAirTemperature m15 : 15|8@0+ (1,-40) [-40|215] "degC" Vector__XXX
+ SG_ S1PID10_MAFAirFlowRate m16 : 15|16@0+ (0.01,0) [0|655.35] "grams/sec" Vector__XXX
+ SG_ S1PID11_ThrottlePosition m17 : 15|8@0+ (0.39216,0) [0|100] "%" Vector__XXX
+ 
+
+
+CM_ BO_ 2024 "OBD_ISOTP";
+BA_DEF_ SG_  "SignalIgnore" INT 0 1;
+BA_DEF_ BO_  "VFrameFormat" ENUM  "StandardCAN","ExtendedCAN","StandardCAN_FD","ExtendedCAN_FD","J1939PG";
+BA_DEF_ BO_  "MessageIgnore" INT 0 1;
+BA_DEF_ BO_  "TransportProtocolType" STRING ;
+BA_DEF_  "BusType" STRING ;
+BA_DEF_  "ProtocolType" STRING ;
+BA_DEF_  "DatabaseCompiler" STRING ;
+BA_DEF_DEF_  "SignalIgnore" 0;
+BA_DEF_DEF_  "VFrameFormat" "";
+BA_DEF_DEF_  "MessageIgnore" 0;
+BA_DEF_DEF_  "TransportProtocolType" "";
+BA_DEF_DEF_  "BusType" "";
+BA_DEF_DEF_  "ProtocolType" "";
+BA_ "BusType" "CAN";
+BA_ "ProtocolType" "OBD";
+BA_ "VFrameFormat" BO_ 2024 0;
+
+BA_ "SignalIgnore" SG_ 2024 S 1;
+
+BA_ "TransportProtocolType" BO_ 2024 "ISOTP";
+
+
+SG_MUL_VAL_ 2024 S1PID S 65-65;
+SG_MUL_VAL_ 2024 S1PID00_PIDsSupported_01_11 S1PID 0-0;
+SG_MUL_VAL_ 2024 S1PID01_MonitorStatus S1PID 1-1;
+SG_MUL_VAL_ 2024 S1PID02_FreezeDTC S1PID 2-2;
+SG_MUL_VAL_ 2024 S1PID03_FuelSystemStatus S1PID 3-3;
+SG_MUL_VAL_ 2024 S1PID04_EngineLoad S1PID 4-4;
+SG_MUL_VAL_ 2024 S1PID05_EngineCoolantTemp S1PID 5-5;
+SG_MUL_VAL_ 2024 S1PID06_ShortFuelTrimBank1 S1PID 6-6;
+SG_MUL_VAL_ 2024 S1PID07_LongFuelTrimBank1 S1PID 7-7;
+SG_MUL_VAL_ 2024 S1PID08_ShortFuelTrimBank2 S1PID 8-8;
+SG_MUL_VAL_ 2024 S1PID09_LongFuelTrimBank2 S1PID 9-9;
+SG_MUL_VAL_ 2024 S1PID0A_FuelPressure S1PID 10-10;
+SG_MUL_VAL_ 2024 S1PID0B_IntakeManiAbsPress S1PID 11-11;
+SG_MUL_VAL_ 2024 S1PID0C_EngineRPM S1PID 12-12;
+SG_MUL_VAL_ 2024 S1PID0D_VehicleSpeed S1PID 13-13;
+SG_MUL_VAL_ 2024 S1PID0E_TimingAdvance S1PID 14-14;
+SG_MUL_VAL_ 2024 S1PID0F_IntakeAirTemperature S1PID 15-15;
+SG_MUL_VAL_ 2024 S1PID10_MAFAirFlowRate S1PID 16-16;
+SG_MUL_VAL_ 2024 S1PID11_ThrottlePosition S1PID 17-17;
