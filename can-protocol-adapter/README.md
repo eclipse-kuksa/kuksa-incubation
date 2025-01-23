@@ -35,13 +35,13 @@ The details of the features, planned enhancements and known issues for the initi
 
 - **Prerequisites**
 
-    Install CAN utils, e.g. in Ubuntu machine 
-    
+    Install CAN utils, e.g. in Ubuntu machine
+
         sudo apt update
         sudo apt install can-utils
-    
+
     Linux Kernel Requirements
-    
+
     The minimum required Linux kernel version is 5.10, and can-isotp has been part of the Linux mainline since version 5.10.
 
 - **Configuration**
@@ -57,7 +57,7 @@ The details of the features, planned enhancements and known issues for the initi
     CAN protocol adapter implements kuksa.val.v1.VAL  gRPC service interface currently.
 
 ## Building the application
-**Using cargo to Build:**  
+**Using cargo to Build:**
 
 To compile the project in release mode using cargo
 
@@ -98,21 +98,3 @@ To build for a different architecture, pass TARGETARCH as build argument current
 Run the container with the following command:
 
     docker run --network=host -v /<path_to_config>/config.json:/config/config.json -v /<path_to_dbc>/<dbc_file_name>.dbc:/data/<dbc_file_name>.dbc can-protocol-adapter:latest --config /config/config.json
-
-
-
-
-
-
-
-    
-
-  
-
-
-
-
-
-
-
-

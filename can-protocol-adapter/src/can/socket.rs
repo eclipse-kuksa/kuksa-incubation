@@ -37,7 +37,7 @@ impl Socket {
             let socket = if is_extended {
                 IsoTpSocket::open(
                     &self.interface_name,
-                    ExtendedId::new(rxid).expect("Invalid rx id"), 
+                    ExtendedId::new(rxid).expect("Invalid rx id"),
                     ExtendedId::new(txid).expect("Invalid tx id"),
                 )?
             } else {
