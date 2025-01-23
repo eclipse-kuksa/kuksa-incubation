@@ -34,7 +34,7 @@ display_help() {
 
 if [ -z "$1" ] || [[ "$1" == "--help" ]]; then
   display_help
-  exit 0  
+  exit 0
 fi
 
 TARGET="$1"

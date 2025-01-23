@@ -40,5 +40,3 @@ can-dbc="6.0.0"
 codegen = "0.2"
 byteorder = "1.3"
 http = "0.2.8"
-
-

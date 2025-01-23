@@ -6,17 +6,17 @@
   },
   "can_config": {
     "can_interface": "can0",
-    "use_extended_id": false,      
-    "tx_id": "0x7DF",                
-    "rx_id": "0x7E8",                
-    "socket_can_type": "SOCK_DGRAM",      
-    "socket_can_protocol": "CAN_ISOTP" 
+    "use_extended_id": false,
+    "tx_id": "0x7DF",
+    "rx_id": "0x7E8",
+    "socket_can_type": "SOCK_DGRAM",
+    "socket_can_protocol": "CAN_ISOTP"
   },
   "pid_table": [
     {
-      "request_pid": "01 0D",      
-      "response_pid": "41 0D",   
-      "response_timeout_ms": 100, 
+      "request_pid": "01 0D",
+      "response_pid": "41 0D",
+      "response_timeout_ms": 100,
       "description": "Vehicle Speed",
       "expected_response_length": 4,
 	    "interval_ms": 500,
@@ -28,9 +28,9 @@
       }
     },
     {
-      "request_pid": "01 0C",      
-      "response_pid": "41 0C",    
-      "response_timeout_ms": 100,  
+      "request_pid": "01 0C",
+      "response_pid": "41 0C",
+      "response_timeout_ms": 100,
       "description": "Engine RPM",
       "expected_response_length": 3,
 	    "interval_ms": 500,
@@ -42,9 +42,9 @@
       }
     },
     {
-      "request_pid": "01 05",      
-      "response_pid": "41 05",     
-      "response_timeout_ms": 100, 
+      "request_pid": "01 05",
+      "response_pid": "41 05",
+      "response_timeout_ms": 100,
       "description": "Engine Coolant Temperature",
       "expected_response_length": 3,
 	    "interval_ms": 3000,
