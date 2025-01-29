@@ -38,9 +38,9 @@ class Kuksa_Client():
         if "kuksa_val" not in config:
             print("kuksa_val section missing from configuration, exiting")
             sys.exit(-1)
-        kuksaConfig = config["kuksa_val"]
-        self.host = kuksaConfig.get("host")
-        self.port = kuksaConfig.getint("port")
+        kuksaConfig = config['kuksa_val']
+        self.host = kuksaConfig.get('host')
+        self.port = kuksaConfig.getint('port')
         self.client = None
 
     def shutdown(self):
@@ -153,12 +153,12 @@ class carTelemetry_Client():
         tyreWear_4 = telemetryPacket.m_car_damage_data[carIndex].m_tyres_wear[3]
         # Store data
         carTelemetry = {}
-        carTelemetry["Vehicle.FrontLeftWingDamage"] = Datapoint(leftWingDamage)
-        carTelemetry["Vehicle.FrontRightWingDamage"] = Datapoint(rightWingDamage)
-        carTelemetry["Vehicle.Tire.RearLeftWear"] = Datapoint(tyreWear_1)
-        carTelemetry["Vehicle.Tire.RearRightWear"] = Datapoint(tyreWear_2)
-        carTelemetry["Vehicle.Tire.FrontLeftWear"] = Datapoint(tyreWear_3)
-        carTelemetry["Vehicle.Tire.FrontRightWear"] = Datapoint(tyreWear_4)
+        carTelemetry['Vehicle.FrontLeftWingDamage'] = Datapoint(leftWingDamage)
+        carTelemetry['Vehicle.FrontRightWingDamage'] = Datapoint(rightWingDamage)
+        carTelemetry['Vehicle.Tire.RearLeftWear'] = Datapoint(tyreWear_1)
+        carTelemetry['Vehicle.Tire.RearRightWear'] = Datapoint(tyreWear_2)
+        carTelemetry['Vehicle.Tire.FrontLeftWear'] = Datapoint(tyreWear_3)
+        carTelemetry['Vehicle.Tire.FrontRightWear'] = Datapoint(tyreWear_4)
         return carTelemetry
 
     def processTelemetryPacket_LapTime(self, telemetryPacket):
@@ -169,7 +169,7 @@ class carTelemetry_Client():
         lastLapTime_in_s = lastLapTime_in_ms / 1000
         # Store data
         carTelemetry = {}
-        carTelemetry["Vehicle.LastLapTime"] = Datapoint(lastLapTime_in_s)
+        carTelemetry['Vehicle.LastLapTime'] = Datapoint(lastLapTime_in_s)
         return carTelemetry
 
     def processTelemetryPacket_CarStatus(self, telemetryPacket):
@@ -181,7 +181,7 @@ class carTelemetry_Client():
         fuelInPercent = int((fuelInTank / fuelCapacity) * 100)
         # Store data
         carTelemetry = {}
-        carTelemetry["Vehicle.FuelLevel"] = Datapoint(fuelInPercent)
+        carTelemetry['Vehicle.FuelLevel'] = Datapoint(fuelInPercent)
         return carTelemetry
 
     def initPacketProcessing(self):
