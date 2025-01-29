@@ -54,7 +54,7 @@ The details of the features, planned enhancements and known issues for the initi
 
 - **Kuksa APIs supported**
 
-    CAN protocol adapter implements kuksa.val.v1.VAL  gRPC service interface currently.
+    CAN protocol adapter implements kuksa.val.v1.VAL  gRPC service interface currently. The kuksa.val.v1.VAL API is deprecated, but it can still be used. To enable it, you need to start the Kuksa DataBroker with the enable-databroker-v1 flag.
 
 ## Building the application
 **Using cargo to Build:**
