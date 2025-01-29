@@ -19,12 +19,12 @@ use tokio::sync::Mutex;
 use tokio::time::{self};
 
 mod can;
-mod kuksa_feeder;
+mod kuksa_provider;
 mod utils;
 
 use can::comm;
 use can::decoder::Decoder;
-use kuksa_feeder::feeder::Feeder;
+use kuksa_provider::provider::Provider;
 use utils::adapter_config::AdapterConfig;
 use utils::adapter_utils;
 
@@ -63,9 +63,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let broker_ip = adapter_config.general_config.broker_ip.clone();
     let broker_port = adapter_config.general_config.broker_port.clone();
 
-    // Create a new Feeder instance and connect to the data broker.
-    let mut feeder = Feeder::new(broker_ip.clone(), broker_port.clone());
-    match feeder.connect_to_databroker().await {
+    // Create a new Provider instance and connect to the data broker.
+    let mut provider = Provider::new(broker_ip.clone(), broker_port.clone());
+    match provider.connect_to_databroker().await {
         Ok(_) => {
             debug!(
                 "Successfully connected to the databroker to {}:{}",
@@ -96,7 +96,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Register the user defined datapoints with the data broker.
     let datapoints = adapter_utils::datapoints_from_config(&adapter_config);
-    match feeder.register_datapoints(datapoints).await {
+    match provider.register_datapoints(datapoints).await {
         Ok(_) => {
             info!("Successfully registered datapoints.");
         }
@@ -121,7 +121,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Create shared resources using Arc and Mutex.
     let shared_socket = Arc::new(Mutex::new(socket));
-    let shared_feeder = Arc::new(Mutex::new(feeder));
+    let shared_provider = Arc::new(Mutex::new(provider));
     let shared_decoder = Arc::new(Mutex::new(decoder));
     let adapter_config = Arc::new(adapter_config);
 
@@ -138,12 +138,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let receive_task_handle = tokio::spawn({
         let socket_instance = Arc::clone(&shared_socket);
         let adapter_config = Arc::clone(&adapter_config);
-        let feeder_instance = Arc::clone(&shared_feeder);
+        let provider_instance = Arc::clone(&shared_provider);
         async move {
             comm::receive_can_data(
                 socket_instance,
                 adapter_config,
-                feeder_instance,
+                provider_instance,
                 shared_decoder,
                 pid_rx,
                 res_tx,

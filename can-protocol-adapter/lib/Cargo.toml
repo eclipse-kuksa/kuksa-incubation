@@ -19,7 +19,7 @@ members = [
 ]
 
 [workspace.dependencies]
-databroker-proto = { path = "../submodules/kuksa-databroker/databroker-proto/databroker-proto" }
+databroker-proto = { path = "../submodules/kuksa-databroker/databroker-proto" }
 # prost has no features
 prost = "0.11"
 # prost-types has no features
