@@ -49,8 +49,9 @@ class Kuksa_Client:
 
     # Christophers approach on sending Data to Kuksa Server
     def setTelemetryData(self, telemetryData):
-        with VSSClient(self.host, self.port) as self.client:
-            client.set_current_values(telemetryData)
+        test = 3
+        #with VSSClient(self.host, self.port) as client:
+            #client.set_current_values(telemetryData)
 
 
 class carTelemetry_Client:
@@ -91,10 +92,11 @@ class carTelemetry_Client:
         self.thread.start()
 
     def get_next_packet(self):
+        print("start next packet thread")
         while self.running:
             try:
                 # listen to the data via UDP channel
-                packet = listener.get()
+                packet = self.listener.get()
                 packetID = packet.m_header.m_packet_id
                 if packetID in [
                     TelemetryPacketID_Engine,
@@ -130,13 +132,9 @@ class carTelemetry_Client:
         thread_get_next_packet.join()
         thread_initPacketProcessing.join()
 
-    def processTelemetryPacket_Base(self, telemetryPacket):
-        # Forward data to KUKSA_VAL
-        self.consumer.setTelemetryData(telemetryPacket)
-
     def processTelemetryPacket_Engine(self, telemetryPacket):
         # Get data
-        carIndex = packet.m_header.m_player_car_index
+        carIndex = telemetryPacket.m_header.m_player_car_index
         Speed = telemetryPacket.m_car_telemetry_data[carIndex].m_speed
         EngineRPM = telemetryPacket.m_car_telemetry_data[carIndex].m_engine_rpm
         # Store data
@@ -147,14 +145,14 @@ class carTelemetry_Client:
 
     def processTelemetryPacket_CarDamage(self, telemetryPacket):
         # Get data
-        carIndex = packet.m_header.m_player_car_index
-        leftWingDamage = packet.m_car_damage_data[carIndex].m_front_left_wing_damage
-        rightWingDamage = packet.m_car_damage_data[carIndex].m_front_right_wing_damage
+        carIndex = telemetryPacket.m_header.m_player_car_index
+        leftWingDamage = telemetryPacket.m_car_damage_data[carIndex].m_front_left_wing_damage
+        rightWingDamage = telemetryPacket.m_car_damage_data[carIndex].m_front_right_wing_damage
         # Extract nested data
-        tyreWear_1 = packet.m_car_damage_data[carIndex].m_tyres_wear[0]
-        tyreWear_2 = packet.m_car_damage_data[carIndex].m_tyres_wear[1]
-        tyreWear_3 = packet.m_car_damage_data[carIndex].m_tyres_wear[2]
-        tyreWear_4 = packet.m_car_damage_data[carIndex].m_tyres_wear[3]
+        tyreWear_1 = telemetryPacket.m_car_damage_data[carIndex].m_tyres_wear[0]
+        tyreWear_2 = telemetryPacket.m_car_damage_data[carIndex].m_tyres_wear[1]
+        tyreWear_3 = telemetryPacket.m_car_damage_data[carIndex].m_tyres_wear[2]
+        tyreWear_4 = telemetryPacket.m_car_damage_data[carIndex].m_tyres_wear[3]
         # Store data
         carTelemetry = {}
         carTelemetry["Vehicle.FrontLeftWingDamage"] = Datapoint(leftWingDamage)
@@ -167,8 +165,8 @@ class carTelemetry_Client:
 
     def processTelemetryPacket_LapTime(self, telemetryPacket):
         # Get data
-        carIndex = packet.m_header.m_player_car_index
-        lastLapTime_in_ms = packet.m_lap_data[carIndex].m_last_lap_time_in_ms
+        carIndex = telemetryPacket.m_header.m_player_car_index
+        lastLapTime_in_ms = telemetryPacket.m_lap_data[carIndex].m_last_lap_time_in_ms
         # Preprocessing
         lastLapTime_in_s = lastLapTime_in_ms / 1000
         # Store data
@@ -178,9 +176,9 @@ class carTelemetry_Client:
 
     def processTelemetryPacket_CarStatus(self, telemetryPacket):
         # Get data
-        carIndex = packet.m_header.m_player_car_index
-        fuelInTank = packet.m_car_status_data[carIndex].m_fuel_in_tank
-        fuelCapacity = packet.m_car_status_data[carIndex].m_fuel_capacity
+        carIndex = telemetryPacket.m_header.m_player_car_index
+        fuelInTank = telemetryPacket.m_car_status_data[carIndex].m_fuel_in_tank
+        fuelCapacity = telemetryPacket.m_car_status_data[carIndex].m_fuel_capacity
         # Preprocessing
         fuelInPercent = int((fuelInTank / fuelCapacity) * 100)
         # Store data
@@ -202,7 +200,8 @@ class carTelemetry_Client:
                         packet = self.id_To_LastPacket[packetID]
                     else:
                         packetID = None
-                if packetID is not None:
+                        packet = None
+                if packet is not None:
                     # Process telemetry packet
                     carTelemetry = self.id_To_ProcessingFunction[packetID](packet)
                     # Forward data to KUKSA_VAL
@@ -231,8 +230,8 @@ if __name__ == "__main__":
     if configfile is None:
         print("No configuration file found. Exiting")
         sys.exit(-1)
-        config = configparser.ConfigParser()
-        config.read(configfile)
+    config = configparser.ConfigParser()
+    config.read(configfile)
 
     client = carTelemetry_Client(config, Kuksa_Client(config))
 
