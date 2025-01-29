@@ -1,0 +1,31 @@
+[package]
+name = "kuksa-persistence-provider"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.5.20", features = ["derive"] }
+tinyjson = {version = "2.5.1",  optional = true }
+kuksa = { git = "https://github.com/eclipse-kuksa/kuksa-databroker.git", branch = "feature/refactor_kuksa_crate", package = "kuksa" }
+log = "0.4.22"
+env_logger = "0.11.5"
+regex = "1.11.0"
+anyhow = "1.0.40"
+#Only this version is compatible with kuksa crate. 0.13 is not
+prost-types = "0.11.9"
+tokio = { version="1.40.0",  features = ["full"] }
+
+# TODO: change this to a a github path once available
+# djson = { path="../../platform/modules/json-al/djson_rust/" ,  optional = true } # Uncomment to use djson lib
+
+# For testing
+[dev_dependencies]
+tempfile = "3.2.0"
+
+[features]
+default = ["json_tinyjson"]
+# use a dependable json library, this still requires tiny-json for writing
+# json_djson = [ "dep:djson","dep:tinyjson"  ] # Uncomment to use djson lib
+json_tinyjson = [ "dep:tinyjson" ]
