@@ -30,8 +30,7 @@ TelemetryPacketID_CarStatus = 7
 TelemetryPacketID_CarDamage = 10
 TelemetryPacketID_LapTime = 2
 
-
-class Kuksa_Client:
+class Kuksa_Client():
     # Constructor
     def __init__(self, config):
         print("Init kuksa client...")
@@ -49,12 +48,11 @@ class Kuksa_Client:
 
     # Christophers approach on sending Data to Kuksa Server
     def setTelemetryData(self, telemetryData):
-        test = 3
-        #with VSSClient(self.host, self.port) as client:
-            #client.set_current_values(telemetryData)
+        with VSSClient(self.host, self.port) as client:
+            client.set_current_values(telemetryData)
 
 
-class carTelemetry_Client:
+class carTelemetry_Client():
 
     def __init__(self, config, consumer):
         print("Init carTelemetry client...")
@@ -115,10 +113,10 @@ class carTelemetry_Client:
         print("Car Telemetry data loop started")
 
         # extract config
-        config_ipAddr = config["listenerIPAddr"]
-        listener_ip = config_ipAddr["host"]
-        config_UDPport = config["PS5_UDPPort"]
-        udp_port = config_UDPport["port"]
+        config_ipAddr = config['listenerIPAddr']
+        listener_ip = config_ipAddr['host']
+        config_UDPport = config['PS5_UDPPort']
+        udp_port = config_UDPport['port']
 
         print(f"listener_ip:{listener_ip}")
         print(f"udp_port:{udp_port}")
@@ -139,8 +137,8 @@ class carTelemetry_Client:
         EngineRPM = telemetryPacket.m_car_telemetry_data[carIndex].m_engine_rpm
         # Store data
         carTelemetry = {}
-        carTelemetry["Vehicle.Speed"] = Datapoint(Speed)
-        carTelemetry["Vehicle.RPM"] = Datapoint(EngineRPM)
+        carTelemetry['Vehicle.Speed'] = Datapoint(Speed)
+        carTelemetry['Vehicle.RPM'] = Datapoint(EngineRPM)
         return carTelemetry
 
     def processTelemetryPacket_CarDamage(self, telemetryPacket):
@@ -219,9 +217,9 @@ class carTelemetry_Client:
 if __name__ == "__main__":
     print("<kuksa.val> Car Telemetry example feeder")
     config_candidates = [
-        "/config/carTelemetry_feeder.ini",
-        "/etc/carTelemetry_feeder.ini",
-        os.path.join(scriptDir, "config/carTelemetry_feeder.ini"),
+        '/config/carTelemetry_feeder.ini',
+        '/etc/carTelemetry_feeder.ini',
+        os.path.join(scriptDir, 'config/carTelemetry_feeder.ini'),
     ]
     for candidate in config_candidates:
         if os.path.isfile(candidate):
