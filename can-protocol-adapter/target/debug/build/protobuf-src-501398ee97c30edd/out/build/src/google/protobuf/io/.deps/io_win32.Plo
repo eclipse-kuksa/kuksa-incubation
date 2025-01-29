@@ -1,4 +1,0 @@
-google/protobuf/io/io_win32.lo: \
- /home/ban1-l10288/.cargo/registry/src/index.crates.io-6f17d22bba15001f/protobuf-src-1.1.0+21.5/protobuf/src/google/protobuf/io/io_win32.cc \
- /usr/include/stdc-predef.h
-/usr/include/stdc-predef.h:
