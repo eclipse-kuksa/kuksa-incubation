@@ -1,0 +1,3 @@
+[submodule "can-protocol-adapter/submodules/kuksa-databroker"]
+	path = can-protocol-adapter/submodules/kuksa-databroker
+	url = https://github.com/eclipse-kuksa/kuksa-databroker.git

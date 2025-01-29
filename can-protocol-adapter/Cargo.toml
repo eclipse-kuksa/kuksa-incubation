@@ -33,7 +33,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 socketcan-isotp = "1.0.2"
 tonic = "0.11.0"
-databroker-proto = { path = "src/databroker-proto"}
+databroker-proto = { path = "submodules/kuksa-databroker/databroker-proto"}
 kuksa-common = { path = "lib/common"}
 kuksa = { path = "lib/kuksa"}
 can-dbc="6.0.0"
