@@ -41,7 +41,6 @@ class Kuksa_Client():
         kuksaConfig = config['kuksa_val']
         self.host = kuksaConfig.get('host')
         self.port = kuksaConfig.getint('port')
-        self.client = None
 
     def shutdown(self):
         self.client.stop()
@@ -217,8 +216,8 @@ class carTelemetry_Client():
 if __name__ == "__main__":
     print("<kuksa.val> Car Telemetry example feeder")
     config_candidates = ['/config/carTelemetry_feeder.ini',
-                        '/etc/carTelemetry_feeder.ini',
-                        os.path.join(scriptDir, 'config/carTelemetry_feeder.ini')]
+                         '/etc/carTelemetry_feeder.ini',
+                         os.path.join(scriptDir, 'config/carTelemetry_feeder.ini')]
     for candidate in config_candidates:
         if os.path.isfile(candidate):
             configfile = candidate
