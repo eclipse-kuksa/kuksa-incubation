@@ -1,6 +1,0 @@
-cargo:rerun-if-changed=proto/sdv/databroker/v1/broker.proto
-cargo:rerun-if-changed=proto/sdv/databroker/v1/types.proto
-cargo:rerun-if-changed=proto/sdv/databroker/v1/collector.proto
-cargo:rerun-if-changed=proto/kuksa/val/v1/val.proto
-cargo:rerun-if-changed=proto/kuksa/val/v1/types.proto
-cargo:rerun-if-changed=proto
