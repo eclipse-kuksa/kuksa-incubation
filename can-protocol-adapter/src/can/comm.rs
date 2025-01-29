@@ -12,7 +12,7 @@
  ********************************************************************************/
 use super::decoder;
 use super::socket;
-use crate::kuksa_feeder::feeder::Feeder;
+use crate::kuksa_provider::provider::Provider;
 use crate::time::Instant;
 use crate::utils::adapter_config::AdapterConfig;
 use log::{debug, error, trace, warn};
@@ -108,7 +108,7 @@ pub async fn send_can_data(
 pub async fn receive_can_data(
     socket: Arc<Mutex<socket::Socket>>,
     adapter_config: Arc<AdapterConfig>,
-    feeder: Arc<Mutex<Feeder>>,
+    provider: Arc<Mutex<Provider>>,
     decoder: Arc<Mutex<decoder::Decoder>>,
     mut res_rx: mpsc::Receiver<usize>,
     res_tx: mpsc::Sender<bool>,
@@ -124,7 +124,7 @@ pub async fn receive_can_data(
                     let delay_duration = Duration::from_millis(entry.response_timeout_ms as u64);
                     // Sleep for the configured response timeout to allow the CAN response to arrive.
                     sleep(delay_duration).await;
-                    //Lock the socket mutex for exclusive access and  read data from the socket.
+                    //Lock the socket mutex for exclusive access and read data from the socket.
                     let mut socket_lock = socket.lock().await;
                     let (notify, data) = match socket_lock.read_socket() {
                         // Define data outside the match arm.
@@ -166,14 +166,14 @@ pub async fn receive_can_data(
                                     "Decoded value for signal {}: {}",
                                     dbc_signal, decoded_value
                                 );
-                                // Set the decoded value in the feeder.
+                                // Set the decoded value in the provider.
                                 let vss_signal = entry.vss_signal.signal_name.clone();
                                 let vss_datatype = entry.vss_signal.datatype.clone();
-                                let _feeder_handle = tokio::spawn({
-                                    let feeder_instance = feeder.clone();
+                                let _provider_handle = tokio::spawn({
+                                    let provider_instance = provider.clone();
                                     async move {
-                                        let mut feeder = feeder_instance.lock().await;
-                                        if let Err(e) = feeder
+                                        let mut provider = provider_instance.lock().await;
+                                        if let Err(e) = provider
                                             .set_datapoint_values(
                                                 &vss_signal,
                                                 decoded_value,

@@ -51,6 +51,7 @@ The CAN ID used for receiving messages.
 
 ### socket_can_type:
 Specifies the socket type for CAN communication, set to "SOCK_DGRAM", which is typical for datagram-based communication.
+For more information on the SocketCAN API and its parameters, please refer to the official documentation [here](https://crates.io/crates/socketcan)
 
 ### socket_can_protocol:
 Defines the protocol for CAN communication. The default is "CAN_ISOTP", which refers to the ISO-15765 standard for transport protocols, used to handle large messages across the CAN bus.
@@ -68,7 +69,7 @@ This section defines the list of parameter requests (PIDs) that the system will 
      "interval_ms": 500,
      "dbc_signal_name": "S01PID0D_VehicleSpeed",
      "vss_signal": {
-     "signal_name": "Vehicle.CAN.Speed",
+     "signal_name": "Vehicle.OBD.Speed",
      "datatype": "float",
      "unit": "km/h"
     }

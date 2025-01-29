@@ -42,7 +42,7 @@ RELEASE="$2"
 
 # Run cargo clippy with -D warnings
 echo "Running cargo clippy..."
-cargo clippy -- -D warnings 2>&1 | tee $CLIPPY_LOG
+cargo clippy -- -W warnings -D warnings 2>&1 | tee $CLIPPY_LOG
 if [ $? -ne 0 ]; then
     echo "Clippy failed! Check $CLIPPY_LOG for details."
     exit 1

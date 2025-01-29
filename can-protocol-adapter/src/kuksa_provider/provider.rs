@@ -18,15 +18,15 @@ use std::error::Error as StdError;
 use databroker_proto::kuksa::val::{self as proto, v1::Datapoint};
 use kuksa::KuksaClient;
 use proto::v1;
-/// The `Feeder` struct manages the connection to a Kuksa Data Broker
+/// The `Provider` struct manages the connection to a Kuksa Data Broker
 /// and provides methods to interact with it.
-pub struct Feeder {
+pub struct Provider {
     client: Option<KuksaClient>,
     broker_ip: String,
     broker_port: String,
 }
 
-impl Feeder {
+impl Provider {
     pub fn new(broker_ip: String, broker_port: String) -> Self {
         Self {
             client: None,
