@@ -114,8 +114,8 @@ class carTelemetry_Client():
 
         # extract config
         config_ipAddr = config['listenerIPAddr']
-        listener_ip = config_ipAddr['host']
         config_UDPport = config['PS5_UDPPort']
+        listener_ip = config_ipAddr['host']
         udp_port = config_UDPport['port']
 
         print(f"listener_ip:{listener_ip}")
@@ -216,11 +216,9 @@ class carTelemetry_Client():
 
 if __name__ == "__main__":
     print("<kuksa.val> Car Telemetry example feeder")
-    config_candidates = [
-        '/config/carTelemetry_feeder.ini',
-        '/etc/carTelemetry_feeder.ini',
-        os.path.join(scriptDir, 'config/carTelemetry_feeder.ini'),
-    ]
+    config_candidates = ['/config/carTelemetry_feeder.ini',
+                        '/etc/carTelemetry_feeder.ini',
+                        os.path.join(scriptDir, 'config/carTelemetry_feeder.ini')]
     for candidate in config_candidates:
         if os.path.isfile(candidate):
             configfile = candidate
@@ -236,7 +234,6 @@ if __name__ == "__main__":
     def terminationSignalreceived(signalNumber, frame):
         print("Received termination signal. Shutting down")
         client.shutdown()
-
     signal.signal(signal.SIGINT, terminationSignalreceived)
     signal.signal(signal.SIGQUIT, terminationSignalreceived)
     signal.signal(signal.SIGTERM, terminationSignalreceived)
