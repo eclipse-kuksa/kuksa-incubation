@@ -82,9 +82,9 @@ To enable logging use
     RUST_LOG=debug  ./target/x86_64-unknown-linux-gnu/release/can-protocol-adapter –-config  config.json
 
 **CAN Mock Simulation**
-  
+
    This simulation script [can_isotp_simulation.sh](scripts/can_isotp_simulation.sh) simulates CAN ISO-TP (ISO 15765-2) communication on a Linux machine using can-utils.The simulation allows testing CAN-based applications, like OBD-II ECU simulators or other CAN communication systems.
-   
+
 **Prerequisites**
 
   Install CAN utils, e.g. in Ubuntu machine
@@ -95,15 +95,15 @@ To enable logging use
 **Set up a CAN interface**
 
   This creates a virtual CAN interface named vcan0 for testing.
-        
+
     sudo modprobe vcan
     sudo ip link add dev vcan0 type vcan
     sudo ip link set vcan0 up
-        
+
 **Running the script**
 
      chmod +x can_isotp_simulation.sh
-    ./can_isotp_simulation.sh  
+    ./can_isotp_simulation.sh
 
 ## Build Docker Image
 
