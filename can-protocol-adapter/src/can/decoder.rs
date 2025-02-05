@@ -11,14 +11,15 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
-use can_dbc::DBC;
-use log::trace;
+use can_dbc::{Signal, DBC};
+use log::{max_level, trace, LevelFilter};
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::mem;
 
 pub struct Decoder {
-    dbc: Option<DBC>,
+    signals: HashMap<String, Signal>,
 }
 
 impl Decoder {
@@ -29,33 +30,36 @@ impl Decoder {
             .map_err(|e| format!("Failed to read file: {}", e))?;
         let dbc =
             DBC::from_slice(&buffer).map_err(|e| format!("Failed to parse DBC file: {:?}", e))?;
+
+        let mut signals = HashMap::new();
         for message in dbc.messages() {
             for signal in message.signals() {
-                trace!(
-                    "Parsed signal: {} start_bit: {}, size: {}, factor: {}, offset: {}",
-                    signal.name(),
-                    signal.start_bit(),
-                    signal.signal_size(),
-                    signal.factor(),
-                    signal.offset()
-                );
+                signals.insert(signal.name().to_string(), signal.clone());
             }
         }
-        Ok(Self { dbc: Some(dbc) })
+
+        if max_level() <= LevelFilter::Trace {
+            for message in dbc.messages() {
+                for signal in message.signals() {
+                    trace!(
+                        "Parsed signal: {} start_bit: {}, size: {}, factor: {}, offset: {}",
+                        signal.name(),
+                        signal.start_bit(),
+                        signal.signal_size(),
+                        signal.factor(),
+                        signal.offset()
+                    );
+                }
+            }
+        }
+        Ok(Self { signals })
     }
 
     pub fn decode_message_by_name(&self, signal_name: &str, msg: Vec<u8>) -> Result<f64, String> {
-        let dbc = self
-            .dbc
-            .as_ref()
-            .ok_or("DBC not loaded. Call `new()` first.")?;
-
-        let signal = dbc
-            .messages()
-            .iter()
-            .flat_map(|message| message.signals())
-            .find(|signal| signal.name() == signal_name)
-            .ok_or_else(|| format!("Signal '{}' not found in DBC", signal_name))?;
+        let signal = self
+            .signals
+            .get(signal_name)
+            .ok_or_else(|| format!("Signal '{}' not found", signal_name))?;
 
         let mut padded_msg = msg.clone();
 
