@@ -12,10 +12,7 @@
  ********************************************************************************/
 
 use crate::AdapterConfig;
-use databroker_proto::kuksa::val as proto;
 use log::warn;
-use proto::v1;
-use std::collections::HashMap;
 use std::{error::Error, fs};
 
 pub fn read_config(path: &str) -> Result<AdapterConfig, Box<dyn Error>> {
@@ -69,34 +66,4 @@ pub fn validate_adapter_config(config: &AdapterConfig) -> Result<(), Box<dyn Err
     }
 
     Ok(())
-}
-
-pub fn datapoints_from_config(adapter_config: &AdapterConfig) -> HashMap<String, v1::Metadata> {
-    adapter_config
-        .pid_table
-        .iter()
-        .map(|pid_entry| {
-            let vss_signal = &pid_entry.vss_signal;
-            (
-                vss_signal.signal_name.to_string(),
-                v1::Metadata {
-                    entry_type: 12,
-                    comment: Some("none".to_string()),
-                    deprecation: None,
-                    value_restriction: None,
-                    entry_specific: None,
-                    description: Some(format!("{} ({})", vss_signal.signal_name, vss_signal.unit)),
-                    data_type: match vss_signal.datatype.as_str() {
-                        "float" => v1::DataType::Float as i32,
-                        other_type => {
-                            // Handle other types or use an appropriate error handling mechanism
-                            // Panic should ideally be avoided in production code. Consider returning a Result.
-                            panic!("Unsupported datatype: {}", other_type)
-                        }
-                    },
-                    unit: Some("km/h".to_string()), // Adjust if needed
-                },
-            )
-        })
-        .collect()
 }

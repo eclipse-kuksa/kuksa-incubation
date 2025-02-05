@@ -22,7 +22,7 @@ It can be used for various applications, including communication between CAN bus
 
 ## The basic functionality works as follows:
 
-The application connects to the SocketCAN interface and sends all CAN requests, as specified in the PID table of the config file, based on a defined interval. The responses are read, and the raw CAN data is parsed according to the DBC file signals. The CAN signals are then translated into VSS data points based on the VSS and DBC signal mappings described in the config file. The respective VSS data points are then sent to the Kuksa Databroker.
+The CAN Protocol Adapter connects to the SocketCAN interface and sends all CAN requests, as specified in the PID table of the config file, based on a defined interval. The responses are read, and the raw CAN data is parsed according to the DBC file signals. The CAN signals are then translated into VSS data points based on the VSS and DBC signal mappings described in the config file. The respective VSS data points are then sent to the Kuksa Databroker.
 
 ![CAN-Protocol-adapter](assets/context.jpg)
 

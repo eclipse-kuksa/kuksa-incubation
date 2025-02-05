@@ -80,23 +80,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     //Load the DBC file and create a Decoder instance.
     let dbc_file_path = adapter_config.general_config.dbcfile.clone();
-    let decoder = match Decoder::new(&dbc_file_path) {
-        Ok(decoder) => {
-            let log_message = format!(
-                "DBC file loaded from path: {}. DBC File Parsing successful.",
-                dbc_file_path
-            );
-            info!("{}", log_message);
-            decoder
-        }
-        Err(_e) => {
-            panic!("Critical error: Could not parse DBC file. Exiting.");
-        }
-    };
+    let decoder = Decoder::new(&dbc_file_path)?;
+    info!(
+        "DBC file loaded from path: {}. DBC File Parsing successful.",
+        dbc_file_path
+    );
 
     // Register the user defined datapoints with the data broker.
-    let datapoints = adapter_utils::datapoints_from_config(&adapter_config);
-    match provider.register_datapoints(datapoints).await {
+    match provider.register_datapoints(&adapter_config).await {
         Ok(_) => {
             info!("Successfully registered datapoints.");
         }

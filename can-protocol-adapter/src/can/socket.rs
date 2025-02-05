@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-use socketcan_isotp::{self, IsoTpSocket, StandardId, ExtendedId};
+use socketcan_isotp::{self, ExtendedId, IsoTpSocket, StandardId};
 use std::error::Error as StdError;
 use std::sync::{Arc, Mutex};
 
@@ -32,7 +32,12 @@ impl Socket {
         }
     }
 
-    pub fn open_socket(&mut self, rxid: u32, txid: u32, is_extended: bool) -> Result<(), Box<dyn StdError>> {
+    pub fn open_socket(
+        &mut self,
+        rxid: u32,
+        txid: u32,
+        is_extended: bool,
+    ) -> Result<(), Box<dyn StdError>> {
         if self.protocol == "CAN_ISOTP" {
             let socket = if is_extended {
                 IsoTpSocket::open(
