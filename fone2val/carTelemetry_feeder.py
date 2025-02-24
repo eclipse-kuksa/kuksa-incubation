@@ -30,6 +30,7 @@ TelemetryPacketID_CarStatus = 7
 TelemetryPacketID_CarDamage = 10
 TelemetryPacketID_LapTime = 2
 
+
 class Kuksa_Client():
     # Constructor
     def __init__(self, config):
