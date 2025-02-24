@@ -103,7 +103,7 @@ class carTelemetry_Client():
                     TelemetryPacketID_LapTime,
                 ]:
                     with self.datastructure_lock:
-                        if not packetID in self.list_for_Ids:
+                        if packetID not in self.list_for_Ids:
                             self.list_for_Ids.append(packetID)
                         self.id_To_LastPacket[packetID] = packet
             except Exception:
