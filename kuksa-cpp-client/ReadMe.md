@@ -1,16 +1,25 @@
 # CPP based Kuksa client
 
-A pluggable Cpp based library to talk to [kuksa-databroker](https://github.com/eclipse-kuksa/kuksa-databroker)
-based on v2 API
+A pluggable C++ based library to talk to [kuksa-databroker](https://github.com/eclipse-kuksa/kuksa-databroker)
+based on kuksa-proto v2 API
 
-APIs
+Supported APIs from proto files
 
-- `connect("127.0.0.1:55555")`
-    Establish connection to a databroker end-point
-- `get("Vehicle.Speed")`
-    Get a datapoint value
-- `set("Vehicle.Speed",value)`
-    Set a datapoint with the corresponding value
+| Kuksa v2 API       | C++ client status  |
+| ------------------ | -------------------|
+| GetValue           | :white_check_mark: |
+| GetValues          | :white_check_mark: |
+| Subscribe          | :white_check_mark: |
+| SubscribeById      | :x:|
+| Actuate            | :white_check_mark: |
+| BatchActuate       | :x:|
+| ListMetadata       | :x:|
+| PublishValue       | :white_check_mark: |
+| OpenProviderStream | :x:|
+| GetServerInfo      | :white_check_mark: |
+
+> [!NOTE]
+> Refer [example_v2](./example/example_v2.cpp) for API usage
 
 ## How to build
 
@@ -28,7 +37,7 @@ just build
 
 ## Proto
 
-Proto sources are available in the submodule (kuksa-common)[../kuksa-common/]
+Proto sources are available in the submodule kuksa-common
 
 ## Examples
 

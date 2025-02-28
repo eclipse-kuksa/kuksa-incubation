@@ -21,6 +21,7 @@
 #include <memory>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
+#include <vector>
 
 namespace kuksa {
 
@@ -75,7 +76,7 @@ public:
     kuksa::val::v1::GetRequest request;
     kuksa::val::v1::GetResponse response;
 
-    grpc::Status status = mStubV1->Get(&context, request, &response);
+    const grpc::Status status = mStubV1->Get(&context, request, &response);
 
     if (!status.ok()) {
       mLogger->debug("RPC failed: {}", status.error_message());
@@ -107,7 +108,7 @@ public:
     // Set the value in the DataEntry
     data_entry->mutable_value()->CopyFrom(value);
 
-    grpc::Status status = mStubV1->Set(&context, request, &response);
+    const grpc::Status status = mStubV1->Set(&context, request, &response);
 
     if (!status.ok()) {
       mLogger->debug("RPC failed: {}", status.error_message());
@@ -193,8 +194,8 @@ public:
     return true;
   }
 
-  bool get(const std::string &datapoint, kuksa::val::v2::Value &value) {
-    mLogger->info("get invoked on {}", datapoint);
+  bool getValue(const std::string &datapoint, kuksa::val::v2::Value &value) {
+    mLogger->info("getValue invoked on {}", datapoint);
 
     if (!mStubV2) {
       return false;
@@ -206,7 +207,7 @@ public:
 
     request.mutable_signal_id()->set_path(datapoint);
 
-    grpc::Status status = mStubV2->GetValue(&context, request, &response);
+    const grpc::Status status = mStubV2->GetValue(&context, request, &response);
 
     if (!status.ok()) {
       mLogger->debug("RPC failed: {}", status.error_message());
@@ -301,7 +302,7 @@ public:
     request.mutable_signal_id()->set_path(datapoint);
     *request.mutable_value() = value;
 
-    grpc::Status status = mStubV2->Actuate(&context, request, &response);
+    const grpc::Status status = mStubV2->Actuate(&context, request, &response);
 
     if (!status.ok()) {
       mLogger->debug("RPC failed: {}", status.error_message());
@@ -313,7 +314,7 @@ public:
 
   bool publishValue(const std::string &datapoint,
                     const kuksa::val::v2::Value &value) {
-    mLogger->info("publish invoked on {}", datapoint);
+    mLogger->info("publishValue invoked on {}", datapoint);
 
     if (!mStubV2) {
       mLogger->debug("Client not connected");
@@ -339,7 +340,8 @@ public:
     timestamp->set_seconds(seconds.count());
     timestamp->set_nanos(nanos.count());
 
-    grpc::Status status = mStubV2->PublishValue(&context, request, &response);
+    const grpc::Status status =
+        mStubV2->PublishValue(&context, request, &response);
 
     if (!status.ok()) {
       mLogger->debug("RPC failed: {}", status.error_message());
@@ -347,6 +349,65 @@ public:
     }
 
     return true;
+  }
+
+  bool getServerInfo(kuksa::val::v2::GetServerInfoResponse &response) {
+    mLogger->info("getServerInfo invoked");
+
+    if (!mStubV2) {
+      mLogger->debug("Client not connected");
+      return false;
+    }
+
+    grpc::ClientContext context;
+    kuksa::val::v2::GetServerInfoRequest request;
+
+    const grpc::Status status =
+        mStubV2->GetServerInfo(&context, request, &response);
+
+    if (!status.ok()) {
+      mLogger->debug("RPC failed: {}", status.error_message());
+      return false;
+    }
+
+    return true;
+  }
+
+  std::vector<kuksa::val::v2::Datapoint>
+  getValues(const std::vector<std::string> &datapoints) {
+
+    std::for_each(datapoints.begin(), datapoints.end(),
+                  [this](const std::string &datapoint) {
+                    mLogger->info("GetValues invoked on {}", datapoint);
+                  });
+
+    if (!mStubV2) {
+      return {};
+    }
+
+    grpc::ClientContext context;
+    kuksa::val::v2::GetValuesRequest request;
+    kuksa::val::v2::GetValuesResponse response;
+
+    for (const auto &datapoint : datapoints) {
+      kuksa::val::v2::SignalID *signal_id = request.add_signal_ids();
+      signal_id->set_path(datapoint);
+    }
+
+    const grpc::Status status =
+        mStubV2->GetValues(&context, request, &response);
+
+    if (status.ok()) {
+      std::vector<kuksa::val::v2::Datapoint> datapoints;
+      for (const auto &dp : response.data_points()) {
+        datapoints.push_back(dp);
+      }
+      // happy path
+      return datapoints;
+    } else {
+      mLogger->debug("RPC failed: {}", status.error_message());
+      return {};
+    }
   }
 
 private:
@@ -377,9 +438,9 @@ bool KuksaClient::get(const std::string &datapoint,
   return mKuksaClient->get(datapoint, value);
 }
 
-bool KuksaClient::get(const std::string &datapoint,
-                      kuksa::val::v2::Value &value) {
-  return mKuksaClient->get(datapoint, value);
+bool KuksaClient::getValue(const std::string &datapoint,
+                           kuksa::val::v2::Value &value) {
+  return mKuksaClient->getValue(datapoint, value);
 }
 
 bool KuksaClient::set(const std::string &datapoint,
@@ -406,4 +467,15 @@ bool KuksaClient::publishValue(const std::string &datapoint,
                                const kuksa::val::v2::Value &value) {
   return mKuksaClient->publishValue(datapoint, value);
 }
+
+bool KuksaClient::getServerInfo(
+    kuksa::val::v2::GetServerInfoResponse &response) {
+  return mKuksaClient->getServerInfo(response);
+}
+
+std::vector<kuksa::val::v2::Datapoint>
+KuksaClient::getValues(const std::vector<std::string> &datapoints) {
+  return mKuksaClient->getValues(datapoints);
+}
+
 } // namespace kuksa
