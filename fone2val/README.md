@@ -10,9 +10,9 @@ https://github.com/fraunhofer-iem/f1-telemetry-dashboard
 The custom [VSS File](./VSS/vss.json) contains specification points for further Application use.\
 The [`carTelemetry_feeder.ini`](./config/carTelemetry_feeder.ini)  contains `kuksa.val`, `listenerIPAddr` and `PS5_UDPPort` configuration.
 
-Before starting the [F1 feeder](./carTelemetry_feeder.py), you need to start the `kuksa.val databroker` docker container by running the following command in the main project folder:
+Before starting the [F1 feeder](./carTelemetry_feeder.py), you need to start the `kuksa.val databroker` docker container by running the following command in the main project folder (sucessfully tested with version 0.4.3):
 ```
-docker run -it -v ./VSS:/VSS --rm --net=host -p 127.0.0.1:8090:8090 -e LOG_LEVEL=ALL ghcr.io/eclipse/kuksa.val/databroker:0.4.3 --insecure --vss /VSS/vss.json
+docker run -it -v ./VSS:/VSS --rm --net=host -p 127.0.0.1:8090:8090 -e LOG_LEVEL=ALL ghcr.io/eclipse/kuksa.val/databroker:master --insecure --vss /VSS/vss.json
 ```
 This VSS folder, contains a custom vss.json file for this particular game.
 ## Install dependencies and execution
