@@ -11,14 +11,14 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************/
 # Recursively find all .proto files
-file(GLOB_RECURSE proto_files "${CMAKE_SOURCE_DIR}/proto/*.proto")
+file(GLOB_RECURSE proto_files "${PROJECT_SOURCE_DIR}/proto/*.proto")
 
 add_library(proto-objects OBJECT ${PROTO_FILES})
 
 target_link_libraries(proto-objects PUBLIC protobuf::libprotobuf gRPC::grpc++)
 
 set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/proto")
-set(PROTO_IMPORT_DIRS "${CMAKE_SOURCE_DIR}/proto")
+set(PROTO_IMPORT_DIRS "${PROJECT_SOURCE_DIR}/proto")
 
 # Ensure the output directory exists
 file(MAKE_DIRECTORY ${PROTO_BINARY_DIR})
