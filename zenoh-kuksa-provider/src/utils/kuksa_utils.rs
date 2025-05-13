@@ -11,8 +11,10 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-use kuksa::proto::v1::{datapoint::Value, DataType, Datapoint};
-use kuksa::Client;
+use kuksa_rust_sdk::kuksa::common::ClientTraitV1;
+use kuksa_rust_sdk::v1_proto::datapoint::Value;
+use kuksa_rust_sdk::v1_proto::{DataEntry, DataType, Datapoint};
+use kuksa_rust_sdk::kuksa::val::v1::KuksaClient;
 use log::warn;
 use prost_types::Timestamp;
 use std::collections::HashMap;
@@ -23,19 +25,20 @@ use zenoh::sample::Sample;
 use crate::utils::{metadata_store::MetadataInfo, zenoh_utils::zbytes_to_string};
 
 pub async fn fetch_metadata(
-    mut kuksa_client: Client,
-    paths: Vec<&str>,
+    mut kuksa_client: KuksaClient,
+    paths: Vec<String>,
     metadata_store: &super::metadata_store::MetadataStore,
-) -> Client {
+
+) -> KuksaClient {
     let mut store = metadata_store.lock().await;
 
-    let data_entries: Vec<kuksa::DataEntry> = kuksa_client.get_metadata(paths).await.unwrap();
+    let data_entries: Vec<DataEntry> = kuksa_client.get_metadata(paths).await.unwrap();
 
     for entry in data_entries {
         store.insert(
             entry.path,
             MetadataInfo {
-                data_type: DataType::from_i32(entry.metadata.unwrap().data_type)
+                data_type: DataType::try_from(entry.metadata.unwrap().data_type)
                     .unwrap_or(DataType::Unspecified),
             },
         );
@@ -99,22 +102,22 @@ pub fn datapoint_to_string(datapoint: &Datapoint) -> Option<String> {
         .value
         .as_ref()
         .map(|value| match value {
-            kuksa::proto::v1::datapoint::Value::String(v) => v.clone(),
-            kuksa::proto::v1::datapoint::Value::Bool(v) => v.to_string(),
-            kuksa::proto::v1::datapoint::Value::Int32(v) => v.to_string(),
-            kuksa::proto::v1::datapoint::Value::Int64(v) => v.to_string(),
-            kuksa::proto::v1::datapoint::Value::Uint32(v) => v.to_string(),
-            kuksa::proto::v1::datapoint::Value::Uint64(v) => v.to_string(),
-            kuksa::proto::v1::datapoint::Value::Float(v) => v.to_string(),
-            kuksa::proto::v1::datapoint::Value::Double(v) => v.to_string(),
-            kuksa::proto::v1::datapoint::Value::StringArray(v) => format!("{:?}", v.values),
-            kuksa::proto::v1::datapoint::Value::BoolArray(v) => format!("{:?}", v.values),
-            kuksa::proto::v1::datapoint::Value::Int32Array(v) => format!("{:?}", v.values),
-            kuksa::proto::v1::datapoint::Value::Int64Array(v) => format!("{:?}", v.values),
-            kuksa::proto::v1::datapoint::Value::Uint32Array(v) => format!("{:?}", v.values),
-            kuksa::proto::v1::datapoint::Value::Uint64Array(v) => format!("{:?}", v.values),
-            kuksa::proto::v1::datapoint::Value::FloatArray(v) => format!("{:?}", v.values),
-            kuksa::proto::v1::datapoint::Value::DoubleArray(v) => format!("{:?}", v.values),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::String(v) => v.clone(),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::Bool(v) => v.to_string(),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::Int32(v) => v.to_string(),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::Int64(v) => v.to_string(),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::Uint32(v) => v.to_string(),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::Uint64(v) => v.to_string(),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::Float(v) => v.to_string(),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::Double(v) => v.to_string(),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::StringArray(v) => format!("{:?}", v.values),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::BoolArray(v) => format!("{:?}", v.values),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::Int32Array(v) => format!("{:?}", v.values),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::Int64Array(v) => format!("{:?}", v.values),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::Uint32Array(v) => format!("{:?}", v.values),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::Uint64Array(v) => format!("{:?}", v.values),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::FloatArray(v) => format!("{:?}", v.values),
+            kuksa_rust_sdk::v1_proto::datapoint::Value::DoubleArray(v) => format!("{:?}", v.values),
         })
         .or_else(|| {
             warn!("Datapoint has no value");

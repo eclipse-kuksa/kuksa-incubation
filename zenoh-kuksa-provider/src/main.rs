@@ -12,6 +12,8 @@
  ********************************************************************************/
 
 use clap::Parser;
+use kuksa_rust_sdk::kuksa::common::ClientTraitV1;
+use kuksa_rust_sdk::kuksa::val::v1::KuksaClient;
 use log::{debug, error, info, warn};
 use provider_config::ProviderConfig;
 use std::collections::HashMap;
@@ -54,7 +56,7 @@ impl Args {
 async fn handling_zenoh_subscription(
     session: Arc<Session>,
     metadata_store: MetadataStore,
-    mut kuksa_client: kuksa::Client,
+    mut kuksa_client: KuksaClient,
 ) {
     info!("Listening on selector: {:?}", VEHCILE_KEY_EXPR);
 
@@ -87,22 +89,22 @@ async fn handling_zenoh_subscription(
 async fn publish_to_zenoh(
     provider_config: ProviderConfig,
     session: Arc<Session>,
-    mut kuksa_client: kuksa::Client,
+    mut kuksa_client: KuksaClient
 ) {
     let vss_paths = Vec::from_iter(provider_config.signals.iter().map(String::as_str));
 
     let mut publishers: HashMap<String, Publisher<'_>> = HashMap::new();
-    for vss_path in &vss_paths {
+    for vss_path in provider_config.signals.clone() {
         let zenoh_key = vss_path.replace(".", "/");
         let publisher = session.declare_publisher(zenoh_key.clone()).await.unwrap();
-        publishers.insert(vss_path.to_string(), publisher);
+        publishers.insert(vss_path, publisher);
     }
     info!(
         "Subscribing to the following paths on the Kuksa Databroker: {:?}",
         vss_paths
     );
 
-    match kuksa_client.subscribe_target_values(vss_paths).await {
+    match kuksa_client.subscribe_target_values(provider_config.signals).await {
         Ok(mut stream) => {
             while let Some(response) = stream.message().await.unwrap() {
                 for update in &response.updates {
@@ -155,14 +157,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let metadata_store = create_metadata_store();
 
-    let uri = kuksa::Uri::try_from(provider_config.kuksa.databroker_url.as_str())
+    let uri = http::Uri::try_from(provider_config.kuksa.databroker_url.as_str())
         .expect("Invalid URI for Kuksa Databroker connection.");
-    let mut client = kuksa::Client::new(uri.clone());
-    let actuation_client = kuksa::Client::new(uri);
+    let mut client = KuksaClient::new(uri.clone());
+    let actuation_client = KuksaClient::new(uri);
 
     client = fetch_metadata(
         client,
-        provider_config.signals.iter().map(|s| s as &str).collect(),
+        provider_config.signals.clone(),
         &metadata_store,
     )
     .await;

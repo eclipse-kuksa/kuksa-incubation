@@ -13,9 +13,8 @@
 
 use std::collections::HashMap;
 use std::sync::Arc;
+use kuksa_rust_sdk::v1_proto::DataType;
 use tokio::sync::Mutex;
-
-use kuksa::proto::v1::DataType;
 
 #[derive(Debug, Clone, Copy)]
 pub struct MetadataInfo {

@@ -11,18 +11,16 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-use std::collections::HashSet;
-
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProviderConfig {
     pub zenoh_config: zenoh::config::Config,
     pub kuksa: KuksaConfig,
-    pub signals: HashSet<String>,
+    pub signals: Vec<String>,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct KuksaConfig {
     pub databroker_url: String,
 }
