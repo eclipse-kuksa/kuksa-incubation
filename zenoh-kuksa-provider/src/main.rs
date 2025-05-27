@@ -91,17 +91,16 @@ async fn publish_to_zenoh(
     session: Arc<Session>,
     mut kuksa_client: KuksaClient
 ) {
-    let vss_paths = Vec::from_iter(provider_config.signals.iter().map(String::as_str));
-
     let mut publishers: HashMap<String, Publisher<'_>> = HashMap::new();
     for vss_path in provider_config.signals.clone() {
         let zenoh_key = vss_path.replace(".", "/");
         let publisher = session.declare_publisher(zenoh_key.clone()).await.unwrap();
         publishers.insert(vss_path, publisher);
+
     }
     info!(
         "Subscribing to the following paths on the Kuksa Databroker: {:?}",
-        vss_paths
+        publishers.keys()
     );
 
     match kuksa_client.subscribe_target_values(provider_config.signals).await {
