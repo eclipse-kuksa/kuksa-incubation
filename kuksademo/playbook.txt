@@ -1,0 +1,53 @@
+# This is my cheat sheet VSS/KUKSA intro
+# Obviously you would not need all commands,
+# or need to modify them a bit. "Works for me"
+# But you get the idea :)
+
+
+
+docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-databroker:0.5 --enable-viss
+# Some Mac OS versions can not use port 55555 as it is reserved by the OS. You can bind it, but can never connect to it.
+MAC:
+docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-databroker:0.6 --port 55556 --enable-viss
+
+
+
+
+docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-python-sdk/kuksa-client:0.5
+MAC:
+docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-python-sdk/kuksa-client:0.5 grpc://127.0.0.1:55556
+
+
+getValue Vehicle.Speed
+setValue Vehicle.Speed 200
+getMetaData Vehicle.Speed
+
+
+
+getMetaData Vehicle.Chassis.Axle.Row1.Wheel.Left.Brake.PadWear
+getValue Vehicle.Chassis.Axle.Row1.Wheel.Left.Brake.PadWear
+setValue Vehicle.Chassis.Axle.Row1.Wheel.Left.Brake.PadWear 200
+setValue Vehicle.Chassis.Axle.Row1.Wheel.Left.Brake.PadWear 50
+getValue Vehicle.Chassis.Axle.Row1.Wheel.Left.Brake.PadWear
+
+
+
+## Write our own data provider in Python:
+
+ pipenv shell
+ pip install kuksa-client
+
+ python data-provider.py
+
+
+
+  getValue Vehicle.Chassis.Axle.*.Wheel.*.Brake.PadWear
+
+## Driver UI
+
+
+cd driver-ui/webapp
+#this is starting a websever in the local folder
+python3 -m http.server
+
+http://localhost:8000

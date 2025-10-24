@@ -1,0 +1,66 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+
+#banner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #333;
+    color: white;
+    font-size: 48px;
+    box-shadow: 10px 10px 5px gray;
+    padding: 10px;
+    text-align: center;
+}
+
+.car-container {
+    position: relative;
+    width: 476px;
+    height: 1024px;
+}
+
+.car {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: url('car.png') center/cover no-repeat; /* Assume you have a car image named car-graphic.png */
+}
+
+.tire {
+    position: absolute;
+    background-color: white;
+    padding: 5px;
+    border: 1px solid #333;
+    border-radius: 5px;
+    font-size: 36px;
+    text-align: center;
+    width: 200px;
+}
+
+.front-left {
+    top: 150px;
+    left: 10px;
+}
+
+.front-right {
+    top: 150px;
+    right: 10px;
+}
+
+.rear-left {
+    bottom: 150px;
+    left: 10px;
+}
+
+.rear-right {
+    bottom: 150px;
+    right: 10px;
+}
