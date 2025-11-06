@@ -7,10 +7,11 @@ import random
 
 from kuksa_client.grpc import Datapoint
 from kuksa_client.grpc import VSSClient
+import argparse
 
 
 def updateValue(client, path, value):
-    print(f"Updating {path} to: {value}")
+    print(f"Updating {path} to: {value}\n")
     client.set_current_values(
         {path: Datapoint(value)})
 
@@ -45,8 +46,13 @@ def chooseValue():
 
 def main():
     # Create a VSSClient instance, use 55555 when not on MAC
-
-    client = VSSClient('127.0.0.1', 55556)
+    parser = argparse.ArgumentParser(description="Break Pad Wear Provider")
+    parser.add_argument('-p', '--port',
+                        type=int,
+                        default=55555,
+                        help='Port at the Databroker to connect to (default: 55555)')
+    args = parser.parse_args()
+    client = VSSClient('127.0.0.1', args.port)
     client.connect()
     while True:
         # Use user input. In real use cases my process CAN messages or similar

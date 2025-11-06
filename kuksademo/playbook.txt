@@ -1,4 +1,5 @@
-# This is my cheat sheet VSS/KUKSA intro
+# This is my cheat sheet for an introduction
+# to VSS and Eclipse Kuksa.
 # Obviously you would not need all commands,
 # or need to modify them a bit. "Works for me"
 # But you get the idea :)
@@ -17,14 +18,21 @@ docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-python-sdk/kuksa-clie
 MAC:
 docker run -it --rm --net=host ghcr.io/eclipse-kuksa/kuksa-python-sdk/kuksa-client:0.5 grpc://127.0.0.1:55556
 
+# In the Kuksa client run:
 
+# Should return no value since the Vehicle.Speed has not been set yet.
 getValue Vehicle.Speed
+
+# Set Vehicle.Speed and check if it was stored.
 setValue Vehicle.Speed 200
 getMetaData Vehicle.Speed
 
 
 
+# Get the Metadata for another signal
 getMetaData Vehicle.Chassis.Axle.Row1.Wheel.Left.Brake.PadWear
+# Showcase that the databroker only stores the value for
+# a signal that has been set most recently
 getValue Vehicle.Chassis.Axle.Row1.Wheel.Left.Brake.PadWear
 setValue Vehicle.Chassis.Axle.Row1.Wheel.Left.Brake.PadWear 200
 setValue Vehicle.Chassis.Axle.Row1.Wheel.Left.Brake.PadWear 50
@@ -38,13 +46,17 @@ getValue Vehicle.Chassis.Axle.Row1.Wheel.Left.Brake.PadWear
  pip install kuksa-client
 
  python data-provider.py
+# For Mac:
+ python data-provider.py -p 55556
 
-
-
-  getValue Vehicle.Chassis.Axle.*.Wheel.*.Brake.PadWear
+# Check value of brake pads
+# using the Kuksa Client to run:
+getValue Vehicle.Chassis.Axle.*.Wheel.*.Brake.PadWear
 
 ## Driver UI
-
+# As an alternative use the driver-ui/webapp
+# to display the current value for the brake pads
+# as set in the databroker.
 
 cd driver-ui/webapp
 #this is starting a websever in the local folder

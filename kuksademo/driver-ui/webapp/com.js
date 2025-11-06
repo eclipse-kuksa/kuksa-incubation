@@ -114,6 +114,10 @@ function initWebsocket() {
 }
 
 function tempTostr(wear) {
+    if (wear === null) {
+        console.log("Wear is not known");
+        return "❓ N/A"
+    }
     console.log("Wear is "+wear);
     if (wear < 50) {
         return "🟢 "+wear
@@ -127,6 +131,7 @@ function tempTostr(wear) {
     }
     return "🔴 🛠 ⚠ "+wear
 }
+
 function parseData(js) {
     if ( js.hasOwnProperty("subscriptionId") ) {
         if (js['subscriptionId'] == SUB_ID_SPEED) {
