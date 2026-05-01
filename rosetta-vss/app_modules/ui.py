@@ -215,8 +215,9 @@ def render_integration_workspace(kb):
         if merged_proposals == 0 and added_matches == 0:
             st.info("Nothing to export yet (no accepted proposals, no high-confidence matches).")
         else:
-            st.success(f"Export ready: merged {merged_proposals} proposals; added {
-                       added_matches} high-confidence matches.")
+            st.success(f"Export ready: merged {merged_proposals} proposals;"
+                       f"added {added_matches} high-confidence matches."
+                       )
             st.download_button(
                 "📥 Download Extended Standard (.json)",
                 json.dumps(extended_vss_data, indent=2),
