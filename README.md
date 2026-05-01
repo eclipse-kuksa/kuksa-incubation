@@ -28,6 +28,7 @@ Component |  Content | Comment/Status
 [ESP32 gRPC provider](gRPC-on-ESP32)   | Example for interacting with the [KUKSA Databroker](https://github.com/eclipse/kuksa.val/tree/master/kuksa_databroker) with ESP32-based microcontrollers
 [Zenoh Kuksa Provider](zenoh-kuksa-provider)   | Bridge component between the [KUKSA Databroker](https://github.com/eclipse/kuksa.val/tree/master/kuksa_databroker) and [Eclipse Zenoh](https://github.com/eclipse-zenoh/zenoh)
 [CAN Protocol Adapter](https://github.com/eclipse-kuksa/kuksa-incubation/tree/main/can-protocol-adapter)   | Rust module to communicate between CAN devices and the Kuksa DataBroker based on request/response mode.
+[Rosetta VSS](rosetta-vss) | AI-powered mapper from DBC / C / YAML signals to VSS paths using hybrid retrieval (Dense + BM25) with optional LLM-as-Judge.
 
 ## Contribution
 

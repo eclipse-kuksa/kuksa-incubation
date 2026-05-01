@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AUTOSAR xmlns="http://autosar.org/schema/r4.0">
+  <AR-PACKAGES>
+    <AR-PACKAGE>
+      <SHORT-NAME>VehicleInterfaces</SHORT-NAME>
+      <ELEMENTS>
+        <!-- Interface 1: Powertrain Info -->
+        <SENDER-RECEIVER-INTERFACE>
+          <SHORT-NAME>PowertrainData_I</SHORT-NAME>
+          <DATA-ELEMENTS>
+            <VARIABLE-DATA-PROTOTYPE>
+              <SHORT-NAME>EngineSpeed_rpm</SHORT-NAME>
+              <DESC>
+                  <L-2 L="EN">Current rotation speed of the internal combustion engine.</L-2>
+              </DESC>
+            </VARIABLE-DATA-PROTOTYPE>
+            <VARIABLE-DATA-PROTOTYPE>
+              <SHORT-NAME>TransGear_Current</SHORT-NAME>
+            </VARIABLE-DATA-PROTOTYPE>
+          </DATA-ELEMENTS>
+        </SENDER-RECEIVER-INTERFACE>
+
+        <!-- Interface 2: Body Control -->
+        <SENDER-RECEIVER-INTERFACE>
+          <SHORT-NAME>DoorStatus_I</SHORT-NAME>
+          <DATA-ELEMENTS>
+            <VARIABLE-DATA-PROTOTYPE>
+              <SHORT-NAME>DrvrDoor_Open</SHORT-NAME>
+              <DESC>
+                  <L-2 L="EN">Boolean status of driver door.</L-2>
+              </DESC>
+            </VARIABLE-DATA-PROTOTYPE>
+          </DATA-ELEMENTS>
+        </SENDER-RECEIVER-INTERFACE>
+      </ELEMENTS>
+    </AR-PACKAGE>
+  </AR-PACKAGES>
+</AUTOSAR>
