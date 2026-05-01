@@ -1,0 +1,18 @@
+VERSION ""
+
+NS_ :
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+
+BS_:
+
+BU_: ECU ABS
+
+BO_ 100 EngineData: 8 ECU
+ SG_ Eng_RPM : 0|16@1+ (1,0) [0|8000] "rpm" Vector__XXX
+ SG_ Trq_Req : 16|16@1+ (1,0) [0|1000] "Nm" Vector__XXX
+
+BO_ 200 ABS_Data: 8 ABS
+ SG_ Whl_Spd_Avg : 0|16@1+ (0.01,0) [0|250] "km/h" Vector__XXX
