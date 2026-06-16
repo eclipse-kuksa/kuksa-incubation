@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: Apache-2.0
+name: kuksa_dart_client
+description: >-
+  Example client written in the Dart programming language for easy interaction
+  with KUKSA Databroker, built on the published kuksa_dart_sdk.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  kuksa_dart_sdk: ^0.2.3
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.24.0
