@@ -1,0 +1,5 @@
+{
+  "host": "localhost",
+  "port": 55555,
+  "path": "Vehicle.Speed"
+}
