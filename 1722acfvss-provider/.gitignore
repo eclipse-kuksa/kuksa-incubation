@@ -1,0 +1,53 @@
+# -----------------------------
+# Rust
+# -----------------------------
+/target/
+**/*.rs.bk
+
+# Keep Cargo.lock for applications. Uncomment to ignore if this becomes a library crate.
+# Cargo.lock
+
+# -----------------------------
+# C / C++ build artifacts
+# -----------------------------
+*.o
+*.obj
+*.lo
+*.la
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.out
+
+# -----------------------------
+# CMake / Make generated files
+# -----------------------------
+CMakeCache.txt
+CMakeFiles/
+cmake-build-*/
+compile_commands.json
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake
+Testing/
+
+# -----------------------------
+# Other native build systems
+# -----------------------------
+build/
+dist/
+plan.txt
+
+# -----------------------------
+# Editor / OS
+# -----------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
