@@ -14,7 +14,6 @@
 mod csv_reader;
 mod gateway;
 mod gateway_config;
-mod open1722;
 
 use std::io;
 

@@ -18,14 +18,20 @@ use std::os::unix::io::RawFd;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use log::info;
+use open1722::acf::custom::vss::{Data, Path, Vss};
+use open1722::acf::custom::OpCode;
+use open1722::acf::ntscf::Ntscf;
+use open1722::Udp;
 
 use crate::csv_reader::CsvRecord;
-use crate::open1722::ffi;
+use crate::csv_reader::CsvValue;
 
 /// Hard-coded IEEE 1722 stream ID used for all outgoing frames.
 const STREAM_ID: u64 = 0xAABB_CCDD_EEFF_0001;
 /// EtherType assigned to TSN / IEEE 1722 traffic.
 const ETH_P_TSN: u16 = 0x22F0;
+/// Number of bytes of the IEEE 1722 UDP encapsulation header.
+const UDP_HEADER_LEN: usize = 4;
 
 /// Transport socket — either a connected UDP socket (for local testing) or a
 /// raw AF_PACKET descriptor bound to a specific Ethernet interface.
@@ -99,39 +105,39 @@ impl Gateway {
     pub fn send_vss(&self, record: &CsvRecord, seq: &mut u8, udp_seq: &mut u32) -> io::Result<usize> {
         let is_udp = matches!(self.sock, Sock::Udp(_));
         let mut buf = [0u8; 1500];
-        let mut off = 0usize;
 
-        if is_udp {
-            let seq_be = udp_seq.to_be_bytes();
-            buf[off..off + 4].copy_from_slice(&seq_be);
-            *udp_seq += 1;
-            off += ffi::AVTP_UDP_HEADER_LEN;
-        }
+        let total = {
+            let mut start = 0usize;
 
-        let ntscf = &mut buf[off] as *mut u8 as *mut ffi::Avtp_Ntscf;
-        unsafe {
-            ffi::open1722_ffi_ntscf_init(ntscf);
-            ffi::open1722_ffi_ntscf_set_sequence_num(ntscf, *seq);
-            ffi::open1722_ffi_ntscf_set_stream_id(ntscf, STREAM_ID);
-        }
-        *seq = seq.wrapping_add(1);
-        off += ffi::AVTP_NTSCF_HEADER_LEN;
+            if is_udp {
+                let (udp_region, _rest) = buf.split_at_mut(UDP_HEADER_LEN);
+                let mut udp = Udp::initialized(udp_region).map_err(open1722_err)?;
+                udp.set_encapsulation_seq_no(*udp_seq);
+                *udp_seq += 1;
+                start = UDP_HEADER_LEN;
+            }
 
-        let vss = &mut buf[off] as *mut u8 as *mut ffi::Avtp_Vss;
-        let vss_len = build_vss_frame(vss, record)?;
-        off += vss_len;
+            let (ntscf_region, vss_region) = buf[start..].split_at_mut(open1722::acf::ntscf::HEADER_LEN);
+            let mut ntscf = Ntscf::initialized(ntscf_region).map_err(open1722_err)?;
+            ntscf.set_sequence_num(*seq);
+            ntscf.set_stream_id(STREAM_ID);
+            *seq = seq.wrapping_add(1);
 
-        unsafe {
-            ffi::open1722_ffi_ntscf_set_data_length(ntscf, vss_len as u16);
-        }
+            let mut vss = Vss::initialized(vss_region).map_err(open1722_err)?;
+            build_vss_frame(&mut vss, record)?;
+            let vss_len = vss.message_length() as usize;
+            ntscf.set_ntscf_data_length(vss_len as u16);
+
+            start + open1722::acf::ntscf::HEADER_LEN + vss_len
+        };
 
         let n = match &self.sock {
-            Sock::Udp(udp) => udp.send(&buf[..off])?,
+            Sock::Udp(udp) => udp.send(&buf[..total])?,
             Sock::Raw(fd) => unsafe {
                 let n = libc::send(
                     *fd,
                     buf.as_ptr() as *const libc::c_void,
-                    off,
+                    total,
                     0,
                 );
                 if n < 0 {
@@ -196,93 +202,66 @@ impl Drop for Gateway {
 unsafe impl Send for Gateway {}
 unsafe impl Sync for Gateway {}
 
-/// Build one VSS PDU in the buffer pointed to by `vss` and return the
-/// 4-byte-aligned total length (including padding) for `NTSCF_SetDataLength`.
-fn build_vss_frame(vss: *mut ffi::Avtp_Vss, record: &CsvRecord) -> io::Result<usize> {
-    let parsed = crate::csv_reader::CsvValue::parse(&record.value, &record.datatype)
+/// Maps an `open1722::Error` to an `io::Error` for the socket-based API.
+fn open1722_err(e: open1722::Error) -> io::Error {
+    io::Error::new(io::ErrorKind::InvalidInput, e)
+}
+
+/// Populates the VSS PDU header, path and data, and finalizes the length and
+/// trailing pad. `vss` must wrap a mutable buffer large enough for the frame.
+fn build_vss_frame(vss: &mut Vss<&mut [u8]>, record: &CsvRecord) -> io::Result<()> {
+    let parsed = CsvValue::parse(&record.value, &record.datatype)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    let (vss_dt, data_size, data) = make_vss_data(&record.datatype, &parsed);
-    let op_code: i32 = if record.is_actuation() { 1 } else { 0 };
+    let (data, data_size) = make_vss_data(&record.datatype, &parsed);
+    let op_code = if record.is_actuation() {
+        OpCode::PublishTargetValue
+    } else {
+        OpCode::PublishCurrentValue
+    };
 
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_nanos() as u64;
 
-    let vss_path = ffi::make_vss_path_interop(&record.signal);
+    vss.set_op_code(op_code);
+    vss.set_message_timestamp(ts);
+    vss.set_message_timestamp_valid(true);
+    vss.set_path(Path::Interop(record.signal.as_bytes()))
+        .map_err(open1722_err)?;
+    vss.set_data(data).map_err(open1722_err)?;
 
-    unsafe {
-        ffi::Avtp_Vss_Init(vss);
-        ffi::Avtp_Vss_SetMsgTimestamp(vss, ts);
-        ffi::Avtp_Vss_EnableMtv(vss);
-        ffi::Avtp_Vss_SetAddrMode(vss, ffi::VSS_INTEROP_MODE);
-        ffi::Avtp_Vss_SetOpCode(vss, op_code);
-        ffi::Avtp_Vss_SetDatatype(vss, vss_dt);
-        ffi::Avtp_Vss_SetVssPath(vss, &vss_path as *const ffi::VssPath as *mut ffi::VssPath);
-        ffi::Avtp_Vss_SetVssData(vss, &data as *const ffi::VssData as *mut ffi::VssData);
-    }
+    let path_size = 2u16 + record.signal.len() as u16;
+    let payload_len = path_size + data_size;
+    vss.set_payload_length(payload_len).map_err(open1722_err)?;
 
-    let path_len = 2u16 + record.signal.len() as u16;
-    let unpadded_len = ffi::AVTP_VSS_FIXED_HEADER_LEN as u16 + path_len + data_size;
-
-    unsafe {
-        ffi::Avtp_Vss_Pad(vss, unpadded_len);
-        ffi::free_vss_path(vss_path);
-    }
-
-    if record.datatype.eq_ignore_ascii_case("STRING") {
-        let ptr = unsafe { data.data_string };
-        if !ptr.is_null() {
-            unsafe { ffi::free_vss_data_string(ptr) };
-        }
-    }
-
-    Ok((unpadded_len as usize).div_ceil(4) * 4)
+    Ok(())
 }
 
-/// Returns (vss_datatype_enum, wire_size_bytes, VssData union).
-fn make_vss_data(dt: &str, val: &crate::csv_reader::CsvValue) -> (i32, u16, ffi::VssData) {
-    use crate::csv_reader::CsvValue::*;
+/// Returns the VSS data payload and its wire size in bytes (excluding the
+/// 2-byte length prefix that `set_data` adds for variable-length variants).
+fn make_vss_data<'a>(dt: &str, val: &'a CsvValue) -> (Data<'a>, u16) {
+    use CsvValue::*;
     match dt.to_uppercase().as_str() {
-        "INT8" => (0x01, 1, ffi::VssData {
-            data_int8: match val { Int32(n) => *n as i8, _ => 0 },
-        }),
-        "UINT8" => (0x00, 1, ffi::VssData {
-            data_uint8: match val { Uint32(n) => *n as u8, _ => 0 },
-        }),
-        "INT16" => (0x03, 2, ffi::VssData {
-            data_int16: match val { Int32(n) => *n as i16, _ => 0 },
-        }),
-        "UINT16" => (0x02, 2, ffi::VssData {
-            data_uint16: match val { Uint32(n) => *n as u16, _ => 0 },
-        }),
-        "INT32" => (0x05, 4, ffi::VssData {
-            data_int32: match val { Int32(n) => *n, _ => 0 },
-        }),
-        "UINT32" => (0x04, 4, ffi::VssData {
-            data_uint32: match val { Uint32(n) => *n, _ => 0 },
-        }),
-        "INT64" => (0x07, 8, ffi::VssData {
-            data_int64: match val { Int64(n) => *n, _ => 0 },
-        }),
-        "UINT64" => (0x06, 8, ffi::VssData {
-            data_uint64: match val { Uint64(n) => *n, _ => 0 },
-        }),
-        "FLOAT" => (0x09, 4, ffi::VssData {
-            data_float: match val { Float(n) => *n, _ => 0.0 },
-        }),
-        "DOUBLE" => (0x0A, 8, ffi::VssData {
-            data_double: match val { Double(n) => *n, _ => 0.0 },
-        }),
-        "BOOLEAN" => (0x08, 1, ffi::VssData {
-            data_bool: match val { Bool(b) => *b as u8, _ => 0 },
-        }),
+        "INT8" => (Data::I8(match val { Int32(n) => *n as i8, _ => 0 }), 1),
+        "UINT8" => (Data::U8(match val { Uint32(n) => *n as u8, _ => 0 }), 1),
+        "INT16" => (Data::I16(match val { Int32(n) => *n as i16, _ => 0 }), 2),
+        "UINT16" => (Data::U16(match val { Uint32(n) => *n as u16, _ => 0 }), 2),
+        "INT32" => (Data::I32(match val { Int32(n) => *n, _ => 0 }), 4),
+        "UINT32" => (Data::U32(match val { Uint32(n) => *n, _ => 0 }), 4),
+        "INT64" => (Data::I64(match val { Int64(n) => *n, _ => 0 }), 8),
+        "UINT64" => (Data::U64(match val { Uint64(n) => *n, _ => 0 }), 8),
+        "FLOAT" => (Data::F32(match val { Float(n) => *n, _ => 0.0 }), 4),
+        "DOUBLE" => (Data::F64(match val { Double(n) => *n, _ => 0.0 }), 8),
+        "BOOLEAN" => (Data::Bool(match val { Bool(b) => *b, _ => false }), 1),
         "STRING" => {
-            let s = match val { String(s) => s.as_str(), _ => "" };
-            let (data, _ptr) = ffi::make_vss_data_string(s);
-            (0x0B, 2 + s.len() as u16, data)
+            let s = match val {
+                String(s) => s.as_bytes(),
+                _ => b"",
+            };
+            (Data::String(s), 2 + s.len() as u16)
         }
-        _ => (0x09, 4, ffi::VssData { data_float: 0.0 }),
+        _ => (Data::F32(0.0), 4),
     }
 }

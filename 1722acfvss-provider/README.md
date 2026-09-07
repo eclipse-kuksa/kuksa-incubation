@@ -9,43 +9,22 @@ Two binaries that bridge Open1722 ACF-VSS to a KUKSA Databroker:
 
 ## Prerequisites
 
-- **Open1722** (version 0.9.x) installed with libraries at `/usr/local/lib/`
 - **KUKSA Databroker** (version 0.7.0) running and reachable
 - **Rust** toolchain (1.94+)
 - **protoc** (protobuf compiler, required by kuksa-rust-sdk)
+- **libclang** (required by `bindgen` to generate the Open1722 FFI bindings,
+  e.g. Debian/Ubuntu package `libclang-dev`)
 
-Open1722 must be built and installed:
-
-```bash
-git clone https://github.com/COVESA/Open1722.git
-cd Open1722
-mkdir build && cd build
-cmake ..
-make
-sudo make install
-```
-
-The Open1722 headers declare several functions as `static inline` (for performance
-on microcontrollers). A thin C wrapper library exports them as callable symbols
-for FFI:
-
-```bash
-# From the provider repository root:
-mkdir  -p build-ffi && cd build-ffi
-cmake ../ffi-wrapper/
-make
-cp ./libopen1722_ffi.so* ../
-# Optionally install:
-#sudo cp libopen1722_ffi.so /usr/local/lib/ && sudo ldconfig
-```
+The IEEE 1722 / AVTP parsing is provided by the upstream
+[`open1722`](https://crates.io/crates/open1722) crate. It vendors and compiles
+the COVESA Open1722 C library itself, so no system Open1722 installation is
+needed.
 
 ## Building
 
 ```bash
-LD_LIBRARY_PATH=./:$LD_LIBRARY_PATH cargo build
+cargo build
 ```
-
-(Adjust `LD_LIBRARY_PATH` depending on where you installed/copied the .so)
 
 ## open1722-kuksa-provider
 
@@ -54,13 +33,13 @@ LD_LIBRARY_PATH=./:$LD_LIBRARY_PATH cargo build
 #### UDP mode (default)
 
 ```bash
-LD_LIBRARY_PATH=./:$LD_LIBRARY_PATH cargo run --bin open1722-kuksa-provider  -- --kuksa-host http://localhost:55555  --udp-port 17220
+cargo run --bin open1722-kuksa-provider -- --kuksa-host http://localhost:55555 --udp-port 17220
 ```
 
 #### Raw Ethernet mode
 
 ```bash
-.LD_LIBRARY_PATH=./:$LD_LIBRARY_PATH cargo run --bin open1722-kuksa-provider -- \
+cargo run --bin open1722-kuksa-provider -- \
     --kuksa-host http://localhost:55555 \
     --interface eth0 \
     --mac-address 01:00:5e:00:00:01
@@ -82,7 +61,7 @@ Replays a CSV signal log (format described below) as ACF-VSS frames. This uses t
 ### Usage
 
 ```bash
-LD_LIBRARY_PATH=./:$LD_LIBRARY_PATH cargo run --bin acf-vss-gateway -- \
+cargo run --bin acf-vss-gateway -- \
     --csv-file signals-extended.csv \
     --udp-port 17220
 ```
@@ -148,11 +127,8 @@ machines — the UDP transport decouples them.
 
 ### Crate structure
 
-- `ffi-wrapper/` — Thin C shared library exporting Open1722 `static inline`
-  functions as callable symbols for Rust FFI
-- `src/open1722/ffi.rs` — Unsafe C FFI bindings for libopen1722, libopen1722custom,
-  and libopen1722_ffi (shared by both binaries)
-- `src/open1722_vss.rs` — Safe wrapper for parsing ACF-VSS PDU frames (provider)
+- `src/open1722_vss.rs` — Safe wrapper around the `open1722` crate for parsing
+  ACF-VSS PDU frames (provider)
 - `src/open1722_listener.rs` — Raw socket / UDP socket listener (provider)
 - `src/provider.rs` — KUKSA Databroker provider integration via gRPC (provider)
 - `src/config.rs` — CLI configuration for the provider
@@ -161,7 +137,20 @@ machines — the UDP transport decouples them.
 - `src/gateway_config.rs` — CLI configuration for the gateway
 - `src/csv_reader.rs` — CSV parsing and typed value conversion (gateway)
 - `src/main_gateway.rs` — Gateway entry point
-- `build.rs` — Linker directives for all three shared libraries
+
+### VSS ACF message type detection
+
+VSS is a custom ACF format (`AVTP_ACF_TYPE_VSS = 0x42`) that is not part of
+IEEE Std 1722, so it is deliberately absent from the `open1722` crate's
+`AcfMsgType` enum. To dispatch a received ACF message as VSS, the listener
+reads the raw bit field directly: the ACF message type occupies the 7
+most-significant bits of the first octet of the ACF common header, so the code
+checks `(first_octet >> 1) == 0x42` (see `ACF_TYPE_VSS` in
+`src/open1722_listener.rs`).
+
+This is a deliberate workaround rather than an elegant solution. If upstream
+ever exposes VSS (and other custom/user-defined ACF types) through a typed
+accessor, this raw bit check should be replaced with it.
 
 ## ACF-VSS Data Type Mapping
 

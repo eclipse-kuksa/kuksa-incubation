@@ -16,11 +16,29 @@ use std::io;
 use std::net::UdpSocket;
 use std::os::unix::io::RawFd;
 
-use crate::open1722::ffi;
+use open1722::acf::ntscf::Ntscf;
+use open1722::acf::tscf::Tscf;
+use open1722::{CommonHeader, Subtype};
+
 use crate::open1722_vss as vss;
 
 /// EtherType assigned to TSN / IEEE 1722 traffic.
 const ETH_P_TSN: u16 = 0x22F0;
+
+/// Number of bytes of the IEEE 1722 UDP encapsulation header that precedes
+/// AVTP PDUs when carried over UDP/IPv4.
+const UDP_HEADER_LEN: usize = 4;
+
+/// COVESA VSS ACF message type (`AVTP_ACF_TYPE_VSS`).
+///
+/// This value is not present in the `open1722` crate's `AcfMsgType` enum,
+/// because VSS is a custom (non-IEEE) format. We therefore read it as a raw
+/// bit field below. See `parse_buf`.
+///
+/// The ACF message type occupies the 7 most-significant bits of the first
+/// octet of the ACF common header, so the raw octet is shifted right by one
+/// before comparing.
+const ACF_TYPE_VSS: u8 = 0x42;
 
 /// Underlying transport — UDP for local loopback testing or raw AF_PACKET
 /// for real Ethernet frames.
@@ -134,45 +152,52 @@ impl AcfVssListener {
         let mut offset = 0;
 
         if has_udp {
-            if n < ffi::AVTP_UDP_HEADER_LEN {
+            if n < UDP_HEADER_LEN {
                 return Ok(results);
             }
-            offset += ffi::AVTP_UDP_HEADER_LEN;
+            offset += UDP_HEADER_LEN;
         }
 
         while offset + 4 <= n {
-            let cf_ptr = &buf[offset] as *const u8 as *const ffi::Avtp_CommonHeader;
+            // Peek at the AVTP common header to dispatch on the subtype.
+            let Ok(common) = CommonHeader::new(&buf[offset..]) else {
+                break;
+            };
+            let subtype = common.subtype_raw();
 
-            // SAFETY: cf_ptr points into buf, which stays alive for the whole loop body
-            let subtype = unsafe { ffi::open1722_ffi_common_header_get_subtype(cf_ptr) };
-
-            let (cf_header_size, data_length) = if subtype == ffi::AVTP_SUBTYPE_TSCF {
-                let tscf = cf_ptr as *const ffi::Avtp_Tscf;
+            let (header_size, data_length) = if subtype == Subtype::Tscf.as_u8() {
+                let Ok(tscf) = Tscf::new(&buf[offset..]) else {
+                    break;
+                };
                 (
-                    ffi::AVTP_TSCF_HEADER_LEN,
-                    unsafe { ffi::open1722_ffi_tscf_get_stream_data_length(tscf) } as usize,
+                    open1722::acf::tscf::HEADER_LEN,
+                    tscf.stream_data_length() as usize,
                 )
             } else {
-                let ntscf = cf_ptr as *const ffi::Avtp_Ntscf;
+                let Ok(ntscf) = Ntscf::new(&buf[offset..]) else {
+                    break;
+                };
                 (
-                    ffi::AVTP_NTSCF_HEADER_LEN,
-                    unsafe { ffi::open1722_ffi_ntscf_get_data_length(ntscf) } as usize,
+                    open1722::acf::ntscf::HEADER_LEN,
+                    ntscf.ntscf_data_length() as usize,
                 )
             };
 
-            offset += cf_header_size;
+            offset += header_size;
             if offset + 4 > n {
                 break;
             }
 
-            let acf_ptr = &buf[offset] as *const u8 as *const ffi::Avtp_AcfCommon;
-            let acf_type = unsafe { ffi::open1722_ffi_acf_common_get_acf_msg_type(acf_ptr) };
-
-            if acf_type == ffi::AVTP_ACF_TYPE_VSS {
-                let vss_pdu = acf_ptr as *const ffi::Avtp_Vss;
-                if let Some(msg) = vss::parse_vss_frame(vss_pdu) {
-                    results.push(msg);
-                }
+            // Detect a VSS ACF message. The ACF message type is the 7
+            // most-significant bits of the first octet of the ACF common
+            // header. VSS is a custom format (type 0x42) that is not part of
+            // the `AcfMsgType` enum, so we read the raw bit field instead of
+            // using a typed accessor.
+            let acf_msg_type = buf[offset] >> 1;
+            if acf_msg_type == ACF_TYPE_VSS
+                && let Some(msg) = vss::parse_vss_frame(&buf[offset..])
+            {
+                results.push(msg);
             }
 
             if data_length > 0 {

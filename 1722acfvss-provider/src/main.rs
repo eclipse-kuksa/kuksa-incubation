@@ -13,7 +13,6 @@
 //! Listens for ACF-VSS frames on UDP or raw Ethernet, parses them, and
 //! publishes the decoded VSS signals to the KUKSA Databroker over gRPC.
 mod config;
-mod open1722;
 mod open1722_listener;
 mod open1722_vss;
 mod provider;
@@ -64,7 +63,7 @@ async fn main() -> io::Result<()> {
             Ok(messages) => {
                 for msg in messages {
                     info!(
-                        "Received VSS: path={}, op_code={}, datatype={}, value={:?}",
+                        "Received VSS: path={}, op_code={:?}, datatype={:?}, value={:?}",
                         msg.path, msg.op_code, msg.datatype, msg.value
                     );
 

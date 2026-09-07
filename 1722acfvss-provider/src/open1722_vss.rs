@@ -8,13 +8,21 @@
 * SPDX-License-Identifier: Apache-2.0
 ********************************************************************************/
 
-use crate::open1722::ffi;
+//! Safe wrapper around the `open1722` crate for parsing ACF-VSS PDU frames.
+//!
+//! The upstream `open1722` crate provides the `Vss` view, which reads the
+//! fixed header, the variable-length path and the datatype-dispatched data
+//! section, so there is no need to hand-roll path extraction or the value
+//! union decoding here.
+
+use open1722::acf::custom::vss::{Data, Path, Vss};
+use open1722::acf::custom::{Datatype, OpCode};
 
 #[derive(Debug)]
 pub struct ParsedVssMessage {
     pub path: String,
-    pub op_code: i32,
-    pub datatype: i32,
+    pub op_code: OpCode,
+    pub datatype: Datatype,
     #[allow(dead_code)]
     pub timestamp: u64,
     pub value: VssValue,
@@ -38,80 +46,36 @@ pub enum VssValue {
 }
 
 /// Parses an ACF-VSS PDU frame and extracts the VSS path, op code, datatype,
-/// timestamp and value. The acf_pdu must point to a valid ACF VSS PDU.
+/// timestamp and value. The `buf` slice must start at the ACF VSS PDU.
 ///
-/// Path extraction is done in pure Rust because the C library's
-/// `Avtp_Vss_GetVssPath` requires a pre-allocated buffer that we cannot
-/// know the size of without calling `Avtp_Vss_CalcVssPathLength` first.
-pub fn parse_vss_frame(acf_pdu: *const ffi::Avtp_Vss) -> Option<ParsedVssMessage> {
-    if acf_pdu.is_null() {
-        return None;
-    }
+/// Returns `None` if the buffer is too short to hold a well-formed VSS PDU or
+/// if any field cannot be decoded.
+pub fn parse_vss_frame(buf: &[u8]) -> Option<ParsedVssMessage> {
+    let vss = Vss::new(buf).ok()?;
 
-    let op_code = unsafe { ffi::Avtp_Vss_GetOpCode(acf_pdu) };
-    let datatype = unsafe { ffi::Avtp_Vss_GetDatatype(acf_pdu) };
-    let timestamp = unsafe { ffi::Avtp_Vss_GetMsgTimestamp(acf_pdu) };
-    let addr_mode = unsafe { ffi::Avtp_Vss_GetAddrMode(acf_pdu) };
-
-    // The PDU layout after the 12-byte VSS fixed header:
-    //   [path_length: 2 bytes BE] [path: path_length bytes]
-    // Or in static-id mode:
-    //   [static_id: 4 bytes]
-    let pdu_bytes: &[u8] = unsafe {
-        std::slice::from_raw_parts(
-            acf_pdu as *const u8,
-            ffi::AVTP_VSS_FIXED_HEADER_LEN + 256,
-        )
+    let path = match vss.path().ok()? {
+        Path::Interop(bytes) => String::from_utf8_lossy(bytes).to_string(),
+        Path::StaticId(id) => id.to_string(),
     };
 
-    let path = if addr_mode == ffi::VSS_INTEROP_MODE {
-        let path_data = &pdu_bytes[ffi::AVTP_VSS_FIXED_HEADER_LEN..];
-        if path_data.len() < 2 {
-            return None;
-        }
-        let path_len = u16::from_be_bytes([path_data[0], path_data[1]]) as usize;
-        if path_data.len() < 2 + path_len {
-            return None;
-        }
-        String::from_utf8_lossy(&path_data[2..2 + path_len]).to_string()
-    } else {
-        let path_data = &pdu_bytes[ffi::AVTP_VSS_FIXED_HEADER_LEN..];
-        if path_data.len() < 4 {
-            return None;
-        }
-        let id = u32::from_be_bytes([path_data[0], path_data[1], path_data[2], path_data[3]]);
-        format!("{id}")
-    };
+    let op_code = vss.op_code().ok()?;
+    let datatype = vss.datatype().ok()?;
+    let timestamp = vss.message_timestamp();
 
-    let mut data = ffi::VssData { data_uint64: 0 };
-    unsafe { ffi::Avtp_Vss_GetVssData(acf_pdu, &mut data) };
-
-    let value = match datatype {
-        0 => VssValue::Uint8(unsafe { data.data_uint8 }),
-        1 => VssValue::Int8(unsafe { data.data_int8 }),
-        2 => VssValue::Uint16(unsafe { data.data_uint16 }),
-        3 => VssValue::Int16(unsafe { data.data_int16 }),
-        4 => VssValue::Uint32(unsafe { data.data_uint32 }),
-        5 => VssValue::Int32(unsafe { data.data_int32 }),
-        6 => VssValue::Uint64(unsafe { data.data_uint64 }),
-        7 => VssValue::Int64(unsafe { data.data_int64 }),
-        8 => VssValue::Bool(unsafe { data.data_bool != 0 }),
-        9 => VssValue::Float(unsafe { data.data_float }),
-        10 => VssValue::Double(unsafe { data.data_double }),
-        11 => {
-            let data_string = unsafe { &*data.data_string };
-            if data_string.data.is_null() || data_string.data_length == 0 {
-                VssValue::Unknown
-            } else {
-                unsafe {
-                    let slice = std::slice::from_raw_parts(
-                        data_string.data as *const u8,
-                        data_string.data_length as usize,
-                    );
-                    VssValue::String(String::from_utf8_lossy(slice).to_string())
-                }
-            }
-        }
+    let value = match vss.data().ok()? {
+        Data::Bool(v) => VssValue::Bool(v),
+        Data::I8(v) => VssValue::Int8(v),
+        Data::I16(v) => VssValue::Int16(v),
+        Data::I32(v) => VssValue::Int32(v),
+        Data::I64(v) => VssValue::Int64(v),
+        Data::U8(v) => VssValue::Uint8(v),
+        Data::U16(v) => VssValue::Uint16(v),
+        Data::U32(v) => VssValue::Uint32(v),
+        Data::U64(v) => VssValue::Uint64(v),
+        Data::F32(v) => VssValue::Float(v),
+        Data::F64(v) => VssValue::Double(v),
+        Data::String(v) => VssValue::String(String::from_utf8_lossy(v).to_string()),
+        // Array datatypes are not mapped to KUKSA VSS values yet.
         _ => VssValue::Unknown,
     };
 
