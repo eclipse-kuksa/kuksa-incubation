@@ -197,10 +197,10 @@ packages:
     dependency: "direct main"
     description:
       name: kuksa_dart_sdk
-      sha256: d33eee2fc1dd786a455a43166f17b95ad4f4f8054ea4ed164902b79455bc05a5
+      sha256: dda13cb5eab34b329cfb91eda54ad413cebad1f97df15b7ddb8ffdbc6f7b4857
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.8"
+    version: "0.2.10"
   lints:
     dependency: "direct dev"
     description:

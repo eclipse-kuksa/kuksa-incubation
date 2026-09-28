@@ -35,6 +35,22 @@ jobs:
         uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
       - run: dart --version
+
+      # The unit test below only parses ClientConfig; nothing in this workflow
+      # ever started a databroker, so "the sample connects to the databroker
+      # and exercises each core kuksa.val.v2 operation" (README.md) had been
+      # verified by a human running it once, in June, and by nothing since.
+      # This starts the same broker the README tells a stranger to start.
+      - name: Start kuksa-databroker
+        run: |
+          docker run -d --name databroker --net=host \
+            ghcr.io/eclipse-kuksa/kuksa-databroker:main
+          for i in $(seq 1 30); do
+            nc -z localhost 55555 && break
+            sleep 1
+          done
+          nc -z localhost 55555 || { docker logs databroker; exit 1; }
+
       - name: Analyze and test
         run: |
           cd kuksa_dart_client
