@@ -20,7 +20,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use log::info;
 use open1722::acf::custom::vss::{Data, Path, Vss};
 use open1722::acf::custom::OpCode;
-use open1722::acf::ntscf::Ntscf;
+use open1722::acf::ntscf::NtscfV0;
 use open1722::Udp;
 
 use crate::csv_reader::CsvRecord;
@@ -117,8 +117,9 @@ impl Gateway {
                 start = UDP_HEADER_LEN;
             }
 
-            let (ntscf_region, vss_region) = buf[start..].split_at_mut(open1722::acf::ntscf::HEADER_LEN);
-            let mut ntscf = Ntscf::initialized(ntscf_region).map_err(open1722_err)?;
+            let (ntscf_region, vss_region) =
+                buf[start..].split_at_mut(open1722::acf::ntscf::HEADER_LEN_V0);
+            let mut ntscf = NtscfV0::initialized(ntscf_region).map_err(open1722_err)?;
             ntscf.set_sequence_num(*seq);
             ntscf.set_stream_id(STREAM_ID);
             *seq = seq.wrapping_add(1);
@@ -128,7 +129,7 @@ impl Gateway {
             let vss_len = vss.message_length() as usize;
             ntscf.set_ntscf_data_length(vss_len as u16);
 
-            start + open1722::acf::ntscf::HEADER_LEN + vss_len
+            start + open1722::acf::ntscf::HEADER_LEN_V0 + vss_len
         };
 
         let n = match &self.sock {

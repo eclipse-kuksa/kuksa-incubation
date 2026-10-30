@@ -20,6 +20,17 @@ The IEEE 1722 / AVTP parsing is provided by the upstream
 the COVESA Open1722 C library itself, so no system Open1722 installation is
 needed.
 
+The `Cargo.toml` currently redirects `open1722` to a local development
+checkout via `[patch.crates-io]`. That checkout must have its vendored C
+library initialized first:
+
+```bash
+git -C ../../open1722-rs submodule update --init
+```
+
+Once `open1722` 0.9.7 is published, the `[patch.crates-io]` section can be
+removed and the crates.io release used instead.
+
 ## Building
 
 ```bash
@@ -141,16 +152,21 @@ machines — the UDP transport decouples them.
 ### VSS ACF message type detection
 
 VSS is a custom ACF format (`AVTP_ACF_TYPE_VSS = 0x42`) that is not part of
-IEEE Std 1722, so it is deliberately absent from the `open1722` crate's
-`AcfMsgType` enum. To dispatch a received ACF message as VSS, the listener
-reads the raw bit field directly: the ACF message type occupies the 7
-most-significant bits of the first octet of the ACF common header, so the code
-checks `(first_octet >> 1) == 0x42` (see `ACF_TYPE_VSS` in
+IEEE Std 1722, so it has no `AcfMsgType` variant. The listener dispatches on
+the raw ACF message-type field via `AcfCommon::acf_msg_type_raw()`, comparing
+it against the local `ACF_TYPE_VSS` constant (see
 `src/open1722_listener.rs`).
 
-This is a deliberate workaround rather than an elegant solution. If upstream
-ever exposes VSS (and other custom/user-defined ACF types) through a typed
-accessor, this raw bit check should be replaced with it.
+This replaces the earlier raw-bit (`first_octet >> 1`) workaround, which was
+needed before `open1722` exposed an `AcfCommon` accessor. See
+[`docs/vss-acf-type-workaround.md`](docs/vss-acf-type-workaround.md) for the
+history and
+[`docs/open1722-acf-type-access-proposal.md`](docs/open1722-acf-type-access-proposal.md)
+for the upstream API proposal.
+
+The listener accepts both version 0 (IEEE 1722-2016) and version 1
+(IEEE 1722-2025) NTSCF/TSCF stream headers; the gateway continues to emit
+version 0 frames.
 
 ## ACF-VSS Data Type Mapping
 

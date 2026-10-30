@@ -16,9 +16,9 @@ use std::io;
 use std::net::UdpSocket;
 use std::os::unix::io::RawFd;
 
-use open1722::acf::ntscf::Ntscf;
-use open1722::acf::tscf::Tscf;
-use open1722::{CommonHeader, Subtype};
+use open1722::acf::ntscf::{self, Ntscf};
+use open1722::acf::tscf::{self, Tscf};
+use open1722::{AcfCommon, CommonHeader, Subtype};
 
 use crate::open1722_vss as vss;
 
@@ -31,13 +31,9 @@ const UDP_HEADER_LEN: usize = 4;
 
 /// COVESA VSS ACF message type (`AVTP_ACF_TYPE_VSS`).
 ///
-/// This value is not present in the `open1722` crate's `AcfMsgType` enum,
-/// because VSS is a custom (non-IEEE) format. We therefore read it as a raw
-/// bit field below. See `parse_buf`.
-///
-/// The ACF message type occupies the 7 most-significant bits of the first
-/// octet of the ACF common header, so the raw octet is shifted right by one
-/// before comparing.
+/// VSS is a custom (non-IEEE) format, so this value has no `AcfMsgType`
+/// variant. [`AcfCommon::acf_msg_type_raw`] exposes the raw type field for
+/// dispatch. See `parse_buf`.
 const ACF_TYPE_VSS: u8 = 0x42;
 
 /// Underlying transport — UDP for local loopback testing or raw AF_PACKET
@@ -166,21 +162,21 @@ impl AcfVssListener {
             let subtype = common.subtype_raw();
 
             let (header_size, data_length) = if subtype == Subtype::Tscf.as_u8() {
-                let Ok(tscf) = Tscf::new(&buf[offset..]) else {
-                    break;
-                };
-                (
-                    open1722::acf::tscf::HEADER_LEN,
-                    tscf.stream_data_length() as usize,
-                )
+                match Tscf::new(&buf[offset..]) {
+                    Ok(Tscf::V0(tscf)) => (tscf::HEADER_LEN_V0, tscf.stream_data_length() as usize),
+                    Ok(Tscf::V1(tscf)) => (tscf::HEADER_LEN_V1, tscf.stream_data_length() as usize),
+                    Err(_) => break,
+                }
             } else {
-                let Ok(ntscf) = Ntscf::new(&buf[offset..]) else {
-                    break;
-                };
-                (
-                    open1722::acf::ntscf::HEADER_LEN,
-                    ntscf.ntscf_data_length() as usize,
-                )
+                match Ntscf::new(&buf[offset..]) {
+                    Ok(Ntscf::V0(ntscf)) => {
+                        (ntscf::HEADER_LEN_V0, ntscf.ntscf_data_length() as usize)
+                    }
+                    Ok(Ntscf::V1(ntscf)) => {
+                        (ntscf::HEADER_LEN_V1, ntscf.ntscf_data_length() as usize)
+                    }
+                    Err(_) => break,
+                }
             };
 
             offset += header_size;
@@ -188,13 +184,13 @@ impl AcfVssListener {
                 break;
             }
 
-            // Detect a VSS ACF message. The ACF message type is the 7
-            // most-significant bits of the first octet of the ACF common
-            // header. VSS is a custom format (type 0x42) that is not part of
-            // the `AcfMsgType` enum, so we read the raw bit field instead of
-            // using a typed accessor.
-            let acf_msg_type = buf[offset] >> 1;
-            if acf_msg_type == ACF_TYPE_VSS
+            // Detect a VSS ACF message. VSS is a custom format (type 0x42)
+            // that is not part of the `AcfMsgType` enum, so dispatch on the
+            // raw type field exposed by `AcfCommon`.
+            let Ok(acf) = AcfCommon::new(&buf[offset..]) else {
+                break;
+            };
+            if acf.acf_msg_type_raw() == ACF_TYPE_VSS
                 && let Some(msg) = vss::parse_vss_frame(&buf[offset..])
             {
                 results.push(msg);

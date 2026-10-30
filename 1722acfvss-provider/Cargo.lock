@@ -727,9 +727,7 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
 name = "open1722"
-version = "0.9.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e0c50ec4bf7bd2c95119e0a52565c0244ef62d490528c7288b821f3b3e37c9f"
+version = "0.9.7"
 dependencies = [
  "open1722-sys",
  "thiserror",
@@ -753,9 +751,7 @@ dependencies = [
 
 [[package]]
 name = "open1722-sys"
-version = "0.9.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "985e8cc6f0d2709ee5dd7477036022f0392c3b976c1c3ec463ad26aba50000e1"
+version = "0.9.7"
 dependencies = [
  "bindgen",
  "cc",
