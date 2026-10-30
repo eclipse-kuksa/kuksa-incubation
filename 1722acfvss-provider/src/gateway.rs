@@ -17,14 +17,33 @@ use std::net::UdpSocket;
 use std::os::unix::io::RawFd;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use clap::ValueEnum;
 use log::info;
 use open1722::acf::custom::vss::{Data, Path, Vss};
 use open1722::acf::custom::OpCode;
-use open1722::acf::ntscf::NtscfV0;
+use open1722::acf::ntscf::{NtscfV0, NtscfV1};
 use open1722::Udp;
 
 use crate::csv_reader::CsvRecord;
 use crate::csv_reader::CsvValue;
+
+/// AVTP stream header version emitted by the gateway.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum StreamVersion {
+    /// IEEE 1722-2016: 12-byte NTSCF header, 8-bit sequence number.
+    V0,
+    /// IEEE 1722-2025: 28-byte NTSCF header, 32-bit sequence number.
+    V1,
+}
+
+impl std::fmt::Display for StreamVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::V0 => f.write_str("v0"),
+            Self::V1 => f.write_str("v1"),
+        }
+    }
+}
 
 /// Hard-coded IEEE 1722 stream ID used for all outgoing frames.
 const STREAM_ID: u64 = 0xAABB_CCDD_EEFF_0001;
@@ -43,22 +62,24 @@ enum Sock {
 /// Sends pre-built ACF-VSS frames (NTSCF + VSS) over UDP or raw Ethernet.
 pub struct Gateway {
     sock: Sock,
+    version: StreamVersion,
 }
 
 impl Gateway {
     /// Create a gateway that sends frames via UDP to `dest:port`.
-    pub fn new_udp(dest: &str, port: u16) -> io::Result<Self> {
+    pub fn new_udp(dest: &str, port: u16, version: StreamVersion) -> io::Result<Self> {
         let udp = UdpSocket::bind("0.0.0.0:0")?;
         udp.connect(format!("{dest}:{port}"))?;
         Ok(Self {
             sock: Sock::Udp(udp),
+            version,
         })
     }
 
     /// Create a gateway that sends raw L2 frames via `AF_PACKET` on `ifname`
     /// addressed to `macaddr`.  The socket is connected so `send()` can be
     /// used without specifying the destination each time.
-    pub fn new_raw(ifname: &str, macaddr: [u8; 6]) -> io::Result<Self> {
+    pub fn new_raw(ifname: &str, macaddr: [u8; 6], version: StreamVersion) -> io::Result<Self> {
         let fd = unsafe {
             let fd = libc::socket(
                 libc::AF_PACKET,
@@ -98,11 +119,17 @@ impl Gateway {
 
         Ok(Self {
             sock: Sock::Raw(fd),
+            version,
         })
     }
 
     /// Build and send one ACF-VSS frame for a single CSV record.
-    pub fn send_vss(&self, record: &CsvRecord, seq: &mut u8, udp_seq: &mut u32) -> io::Result<usize> {
+    pub fn send_vss(
+        &self,
+        record: &CsvRecord,
+        seq: &mut u32,
+        udp_seq: &mut u32,
+    ) -> io::Result<usize> {
         let is_udp = matches!(self.sock, Sock::Udp(_));
         let mut buf = [0u8; 1500];
 
@@ -117,19 +144,35 @@ impl Gateway {
                 start = UDP_HEADER_LEN;
             }
 
-            let (ntscf_region, vss_region) =
-                buf[start..].split_at_mut(open1722::acf::ntscf::HEADER_LEN_V0);
-            let mut ntscf = NtscfV0::initialized(ntscf_region).map_err(open1722_err)?;
-            ntscf.set_sequence_num(*seq);
-            ntscf.set_stream_id(STREAM_ID);
-            *seq = seq.wrapping_add(1);
+            let header_len = match self.version {
+                StreamVersion::V0 => open1722::acf::ntscf::HEADER_LEN_V0,
+                StreamVersion::V1 => open1722::acf::ntscf::HEADER_LEN_V1,
+            };
+            let (ntscf_region, vss_region) = buf[start..].split_at_mut(header_len);
 
             let mut vss = Vss::initialized(vss_region).map_err(open1722_err)?;
             build_vss_frame(&mut vss, record)?;
             let vss_len = vss.message_length() as usize;
-            ntscf.set_ntscf_data_length(vss_len as u16);
 
-            start + open1722::acf::ntscf::HEADER_LEN_V0 + vss_len
+            match self.version {
+                StreamVersion::V0 => {
+                    let mut ntscf = NtscfV0::initialized(ntscf_region).map_err(open1722_err)?;
+                    ntscf.set_sequence_num(*seq as u8);
+                    ntscf.set_stream_id(STREAM_ID);
+                    ntscf.set_ntscf_data_length(vss_len as u16);
+                }
+                StreamVersion::V1 => {
+                    let mut ntscf = NtscfV1::initialized(ntscf_region).map_err(open1722_err)?;
+                    ntscf.set_sequence_num(*seq);
+                    ntscf.set_stream_id(STREAM_ID);
+                    // The gateway is not PTP-synchronised; leave the
+                    // grandmaster identity at its initialized value (0).
+                    ntscf.set_ntscf_data_length(vss_len as u16);
+                }
+            }
+            *seq = seq.wrapping_add(1);
+
+            start + header_len + vss_len
         };
 
         let n = match &self.sock {
@@ -162,7 +205,7 @@ impl Gateway {
         include_actuation: bool,
         infinite: bool,
     ) -> io::Result<()> {
-        let mut seq: u8 = 0;
+        let mut seq: u32 = 0;
         let mut udp_seq: u32 = 0;
         loop {
             for record in records {

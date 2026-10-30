@@ -10,6 +10,8 @@
 
 //! Command-line configuration for the ACF-VSS gateway binary (`main_gateway`).
 
+use crate::gateway::StreamVersion;
+
 /// Command-line configuration for the ACF-VSS gateway (CSV replay).
 #[derive(clap::Parser, Debug, Clone)]
 #[command(name = "acf-vss-gateway")]
@@ -30,6 +32,10 @@ pub struct GatewayConfig {
     /// Multiplier for CSV row delays (0 = send as fast as possible)
     #[arg(long, default_value = "1.0")]
     pub delay_multiplier: f64,
+
+    /// AVTP stream header version to emit
+    #[arg(long, value_enum, default_value_t = StreamVersion::V0)]
+    pub stream_version: StreamVersion,
 
     /// Destination IP address (UDP mode, default: 127.0.0.1)
     #[arg(long, default_value = "127.0.0.1")]

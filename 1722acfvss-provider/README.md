@@ -77,6 +77,9 @@ cargo run --bin acf-vss-gateway -- \
     --udp-port 17220
 ```
 
+Use `--stream-version v1` to emit IEEE 1722-2025 version 1 NTSCF headers
+instead of the default version 0 frames.
+
 #### CLI options
 
 ```
@@ -84,11 +87,15 @@ cargo run --bin acf-vss-gateway -- \
 --infinite                  Loop over CSV from start after reaching end
 --include-actuation         Process target/actuation rows (default: skip)
 --delay-multiplier <F64>    Multiply each row's delay (default: 1.0)
+--stream-version <v0|v1>    AVTP stream header version to emit [default: v0]
 --udp-port <PORT>           Destination UDP port [default: 17220]
 --destination <IP>          Destination IP (UDP mode) [default: 127.0.0.1]
 --interface <IFNAME>        Network interface for raw Ethernet mode
 --mac-address <MAC>         Destination MAC for raw Ethernet (required with --interface)
 ```
+
+Version 1 frames carry a PTP grandmaster identity of 0 because the replay
+gateway is not PTP-synchronised.
 
 ### CSV format
 
@@ -165,8 +172,8 @@ history and
 for the upstream API proposal.
 
 The listener accepts both version 0 (IEEE 1722-2016) and version 1
-(IEEE 1722-2025) NTSCF/TSCF stream headers; the gateway continues to emit
-version 0 frames.
+(IEEE 1722-2025) NTSCF/TSCF stream headers. The gateway emits version 0 by
+default and can emit version 1 with `--stream-version v1`.
 
 ## ACF-VSS Data Type Mapping
 
