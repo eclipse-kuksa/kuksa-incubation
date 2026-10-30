@@ -39,12 +39,16 @@ fn main() -> io::Result<()> {
             io::Error::new(io::ErrorKind::InvalidInput, "MAC address required for raw Ethernet mode")
         })?;
         let mac = parse_mac(mac_str)?;
-        Gateway::new_raw(ifname, mac)?
+        Gateway::new_raw(ifname, mac, config.stream_version)?
     } else {
-        Gateway::new_udp(&config.destination, config.udp_port)?
+        Gateway::new_udp(&config.destination, config.udp_port, config.stream_version)?
     };
 
-    info!("Starting CSV replay{}...", if config.infinite { " (infinite loop)" } else { "" });
+    info!(
+        "Starting CSV replay{} (stream version {})...",
+        if config.infinite { " (infinite loop)" } else { "" },
+        config.stream_version
+    );
     gateway.replay(
         &records,
         config.delay_multiplier,
