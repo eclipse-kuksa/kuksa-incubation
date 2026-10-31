@@ -20,17 +20,6 @@ The IEEE 1722 / AVTP parsing is provided by the upstream
 the COVESA Open1722 C library itself, so no system Open1722 installation is
 needed.
 
-The `Cargo.toml` currently redirects `open1722` to a local development
-checkout via `[patch.crates-io]`. That checkout must have its vendored C
-library initialized first:
-
-```bash
-git -C ../../open1722-rs submodule update --init
-```
-
-Once `open1722` 0.9.7 is published, the `[patch.crates-io]` section can be
-removed and the crates.io release used instead.
-
 ## Building
 
 ```bash

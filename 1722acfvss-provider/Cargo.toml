@@ -24,7 +24,3 @@ libc = "0.2"
 csv = "1.3"
 serde = { version = "1", features = ["derive"] }
 open1722 = "0.9.7"
-
-# Local development checkout; remove once open1722 0.9.7 is on crates.io.
-[patch.crates-io]
-open1722 = { path = "../../open1722-rs/crates/open1722" }
