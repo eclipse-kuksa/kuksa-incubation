@@ -1,0 +1,18 @@
+[package]
+name = "com-api-runtime-lola"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+# Replace `../../../../communication` with the exact path to your S-Core communication checkout.
+path = "../../../../communication/score/mw/com/impl/rust/com-api/com-api-runtime-lola/lib.rs"
+
+[dependencies]
+bridge_ffi_lola = { path = "../bridge_ffi_lola" }
+bridge_ffi_rs = { path = "../bridge_ffi_rs" }
+futures = "0.3"
+sample_allocatee_ptr_rs = { path = "../sample_allocatee_ptr_rs" }
+sample_ptr_rs = { path = "../sample_ptr_rs" }
+score_com_concept = { path = "../score_com_concept" }
+# Replace `../../../../baselibs` with the exact path to your S-Core baselibs checkout.
+score_log = { path = "../../../../baselibs/score/log_rust/score_log" }

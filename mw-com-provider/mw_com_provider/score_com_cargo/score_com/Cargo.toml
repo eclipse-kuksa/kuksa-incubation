@@ -1,0 +1,12 @@
+[package]
+name = "score_com"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+# Replace `../../../../communication` with the exact path to your S-Core communication checkout.
+path = "../../../../communication/score/mw/com/rust/score_com.rs"
+
+[dependencies]
+com-api-runtime-lola = { path = "../com-api-runtime-lola" }
+score_com_concept = { path = "../score_com_concept" }

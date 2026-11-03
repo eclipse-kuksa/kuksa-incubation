@@ -1,0 +1,12 @@
+[package]
+name = "sample_ptr_rs"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+# Replace `../../../../communication` with the exact path to your S-Core communication checkout.
+path = "../../../../communication/score/mw/com/impl/plumbing/rust/sample_ptr.rs"
+
+[dependencies]
+common_rs = { path = "../common_rs" }
+libc = "0.2"

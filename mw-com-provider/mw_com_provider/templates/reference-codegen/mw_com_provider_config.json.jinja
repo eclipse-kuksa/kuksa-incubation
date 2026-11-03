@@ -1,0 +1,44 @@
+{% import "macros" as macros -%}
+
+{
+  "provider_name": "mw_com_provider",
+  "queue_capacity": 256,
+  "stale_after_ms": 1000,
+  "mappings": [
+{% set comma = namespace(value=false) %}
+{% macro mappings(ns) %}
+{% for intf in ns.interfaces | default([]) %}
+{% for event in intf.events | default([]) %}
+{% if event.provider is defined and event.provider.vss is defined %}
+{% if comma.value %},
+{% endif %}
+{% set comma.value = true %}
+    {
+      "signal_id": {{ event.provider.vss.signal_id }},
+      "vss_path": "{{ event.provider.vss.path }}",
+      "datatype": "{{ macros.to_provider_config_type(event.provider.vss.datatype) }}",
+      "service": "{{ event.provider.service | default(intf.name) }}",
+      "instance": "{{ event.provider.instance | default(ns.name) }}",
+      "member": "{{ event.name }}",
+      "field": {% if event.provider.field is defined %}"{{ event.provider.field }}"{% else %}null{% endif %},
+      "unit": {% if event.provider.vss.unit is defined %}"{{ event.provider.vss.unit }}"{% else %}null{% endif %},
+      "scale": {{ event.provider.vss.scale | default(1.0) }},
+      "offset": {{ event.provider.vss.offset | default(0.0) }},
+      "min": {% if event.provider.vss.min is defined %}{{ event.provider.vss.min }}{% else %}null{% endif %},
+      "max": {% if event.provider.vss.max is defined %}{{ event.provider.vss.max }}{% else %}null{% endif %},
+      "required_quality": "{{ event.provider.vss.required_quality | default("valid") }}",
+      "direction": "{{ event.provider.vss.direction | default("datapoint") }}",
+      "cycle_time_ms": {{ event.provider.vss.cycle_time_ms | default(100) }}
+    }
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% for child in ns.namespaces | default([]) %}
+{{ mappings(child) }}
+{% endfor %}
+{% endmacro %}
+{% for ns in json.namespaces | default([]) %}
+{{ mappings(ns) }}
+{% endfor %}
+  ]
+}

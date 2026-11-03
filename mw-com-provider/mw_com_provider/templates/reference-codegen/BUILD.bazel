@@ -1,0 +1,18 @@
+exports_files(
+    [
+        "config.yaml",
+        "macros.jinja",
+        "mw_com_provider_config.json.jinja",
+        "mw_com_provider_metadata.rs.jinja",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "mw_com_provider_templates",
+    srcs = glob([
+        "*.jinja",
+        "*.yaml",
+    ]),
+    visibility = ["//visibility:public"],
+)
