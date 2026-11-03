@@ -1,0 +1,146 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "Cargo.toml",
+])
+
+filegroup(
+    name = "mw_com_provider_sources",
+    srcs = glob([
+        "src/**/*.rs",
+    ]),
+)
+
+filegroup(
+    name = "mw_com_provider_generated_rust",
+    srcs = glob([
+        "generated/*.rs",
+    ]),
+)
+
+MW_COM_PROVIDER_BASE_DEPS = [
+    "@crates//:serde",
+    "@crates//:serde_json",
+    "@crates//:thiserror",
+    "@crates//:tokio",
+    "@crates//:tracing",
+    "@kuksa_databroker_workspace//:databroker",
+]
+
+rust_library(
+    name = "mw_com_provider",
+    srcs = [
+        "src/lib.rs",
+        ":mw_com_provider_generated_rust",
+        ":mw_com_provider_sources",
+    ],
+    crate_name = "mw_com_provider",
+    edition = "2021",
+    proc_macro_deps = [
+        "@crates//:async-trait",
+    ],
+    deps = MW_COM_PROVIDER_BASE_DEPS,
+)
+
+rust_library(
+    name = "mw_com_provider_score_lola",
+    srcs = [
+        "src/lib.rs",
+        ":mw_com_provider_generated_rust",
+        ":mw_com_provider_sources",
+    ],
+    crate_name = "mw_com_provider",
+    edition = "2021",
+    features = ["link_std_cpp_lib"],
+    rustc_flags = [
+        "--cfg=feature=\"score-lola\"",
+    ],
+    proc_macro_deps = [
+        "@crates//:async-trait",
+    ],
+    deps = MW_COM_PROVIDER_BASE_DEPS + [
+        "@score_communication//score/mw/com/rust:score_com",
+    ],
+)
+
+rust_binary(
+    name = "mw_com_provider_score_lola_bin",
+    srcs = ["src/bin/mw_com_provider.rs"],
+    crate_name = "mw_com_provider_bin",
+    data = [
+        ":provider_generated_artifacts",
+        "@score_communication//score/mw/com/example/vehicle-dynamics-example:vehicle-dynamics-example",
+    ],
+    edition = "2021",
+    features = ["link_std_cpp_lib"],
+    rustc_flags = [
+        "--cfg=feature=\"score-lola\"",
+    ],
+    deps = [
+        ":mw_com_provider_score_lola",
+        "@crates//:tokio",
+        "@kuksa_databroker_workspace//:databroker",
+    ],
+)
+
+filegroup(
+    name = "provider_model",
+    srcs = ["models/vehicle_dynamics.json"],
+)
+
+filegroup(
+    name = "provider_reference_codegen_templates",
+    srcs = ["//templates/reference-codegen:mw_com_provider_templates"],
+)
+
+filegroup(
+    name = "provider_codegen_inputs",
+    srcs = [
+        ":provider_model",
+        ":provider_reference_codegen_templates",
+    ],
+)
+
+filegroup(
+    name = "provider_generated_artifacts",
+    srcs = glob([
+        "generated/*.json",
+        "generated/*.rs",
+    ]),
+)
+
+sh_binary(
+    name = "cargo_check_mw_com_provider",
+    srcs = ["//bazel:cargo_provider.sh"],
+    args = ["check"],
+)
+
+sh_binary(
+    name = "cargo_test_mw_com_provider",
+    srcs = ["//bazel:cargo_provider.sh"],
+    args = ["test"],
+)
+
+sh_binary(
+    name = "generate_mw_com_provider_artifacts",
+    srcs = ["//bazel:cargo_provider.sh"],
+    args = ["codegen"],
+    data = [
+        ":provider_codegen_inputs",
+        "//xtask:xtask_sources",
+    ],
+)
+
+sh_binary(
+    name = "verify_mw_com_provider_codegen",
+    srcs = ["//bazel:cargo_provider.sh"],
+    args = ["verify-codegen"],
+    data = [
+        ":provider_codegen_inputs",
+        ":provider_generated_artifacts",
+        "//xtask:xtask_sources",
+    ],
+)

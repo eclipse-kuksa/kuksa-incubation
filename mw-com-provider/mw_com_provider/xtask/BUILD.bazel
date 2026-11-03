@@ -1,0 +1,10 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "xtask_sources",
+    srcs = [
+        "Cargo.lock",
+        "Cargo.toml",
+        "src/main.rs",
+    ],
+)

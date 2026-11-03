@@ -1,0 +1,28 @@
+templates:
+  - file: "macros.jinja"
+    name: "macros"
+
+  - file: "datatypes.h.jinja"
+    name: "types_header_tpl"
+    suffix: "_types.h"
+    type: "cc_types_library_hdrs"
+
+  - file: "datatypes.cpp.jinja"
+    name: "cpp_types_tpl"
+    suffix: "_types.cpp"
+    type: "cc_types_library_srcs"
+
+  - file: "interfaces.h.jinja"
+    name: "interfaces_header_tpl"
+    suffix: "_interfaces.h"
+    type: "cc_interfaces_library_hdrs"
+
+  - file: "interfaces.cpp.jinja"
+    name: "cpp_interfaces_tpl"
+    suffix: "_interfaces.cpp"
+    type: "cc_interfaces_library_srcs"
+
+  - file: "datatypes.ffi_bridge.cpp.jinja"
+    name: "cpp_ffi_bridge_tpl"
+    suffix: "_ffi_bridge.cpp"
+    type: "cc_ffi_bridge_library_srcs"

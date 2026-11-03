@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "file": "mw_com_provider_metadata.rs",
+      "namespace": "mw_com",
+      "template": "mw_com_provider_metadata.rs.jinja",
+      "type": "rust_provider_metadata_srcs"
+    },
+    {
+      "file": "mw_com_provider_config.json",
+      "namespace": "mw_com",
+      "template": "mw_com_provider_config.json.jinja",
+      "type": "provider_config_json"
+    },
+    {
+      "file": "mw_com_provider_types.rs",
+      "namespace": "mw_com",
+      "template": "mw_com_provider_types.rs.jinja",
+      "type": "rust_score_payload_srcs"
+    },
+    {
+      "file": "mw_com_provider_interfaces.rs",
+      "namespace": "mw_com",
+      "template": "mw_com_provider_interfaces.rs.jinja",
+      "type": "rust_score_interface_srcs"
+    },
+    {
+      "file": "mw_com_provider_instances.rs",
+      "namespace": "mw_com",
+      "template": "mw_com_provider_instances.rs.jinja",
+      "type": "rust_score_instance_srcs"
+    },
+    {
+      "file": "mw_com_provider_lola_adapter.rs",
+      "namespace": "mw_com",
+      "template": "mw_com_provider_lola_adapter.rs.jinja",
+      "type": "rust_score_lola_adapter_srcs"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+[package]
+name = "score_com_macros"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+proc-macro = true
+# Replace `../../../../communication` with the exact path to your S-Core communication checkout.
+path = "../../../../communication/score/mw/com/rust/score_com_macros/lib.rs"
+
+[dependencies]
+quote = "1"
+syn = "2"

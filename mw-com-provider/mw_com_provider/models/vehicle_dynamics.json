@@ -1,0 +1,146 @@
+{
+  "namespaces": [
+    {
+      "interfaces": [
+        {
+          "events": [
+            {
+              "datatype": "SpeedSample",
+              "has_serialized_format": false,
+              "name": "speed",
+              "provider": {
+                "field": "value",
+                "instance": "front_vehicle",
+                "instance_specifier": "/Vehicle/Service1/Instance",
+                "service": "VehicleDynamicsService",
+                "vss": {
+                  "cycle_time_ms": 100,
+                  "datatype": "double",
+                  "direction": "datapoint",
+                  "max": 300,
+                  "min": 0,
+                  "offset": 0,
+                  "path": "Vehicle.Speed",
+                  "required_quality": "valid",
+                  "scale": 3.6,
+                  "signal_id": 42,
+                  "unit": "km/h"
+                }
+              },
+              "sample_alignment": 8,
+              "sample_size": 16
+            },
+            {
+              "datatype": "TargetSpeed",
+              "has_serialized_format": false,
+              "name": "target_speed",
+              "provider": {
+                "field": "value",
+                "instance": "front_vehicle_actuator",
+                "instance_specifier": "/Vehicle/Service2/Instance",
+                "service": "VehicleDynamicsService",
+                "vss": {
+                  "cycle_time_ms": 100,
+                  "datatype": "double",
+                  "direction": "actuator",
+                  "max": 180,
+                  "min": 0,
+                  "offset": 0,
+                  "path": "Vehicle.ADAS.CruiseControl.TargetSpeed",
+                  "required_quality": "valid",
+                  "scale": 1,
+                  "signal_id": 43,
+                  "unit": "km/h"
+                }
+              },
+              "sample_alignment": 8,
+              "sample_size": 8
+            },
+            {
+              "datatype": "CruiseControlEnabled",
+              "has_serialized_format": false,
+              "name": "cruise_control_enabled",
+              "provider": {
+                "field": "value",
+                "instance": "front_vehicle",
+                "instance_specifier": "/Vehicle/Service1/Instance",
+                "service": "VehicleDynamicsService",
+                "vss": {
+                  "cycle_time_ms": 250,
+                  "datatype": "boolean",
+                  "direction": "datapoint",
+                  "path": "Vehicle.ADAS.CruiseControl.IsEnabled",
+                  "required_quality": "valid",
+                  "signal_id": 44
+                }
+              },
+              "sample_alignment": 1,
+              "sample_size": 1
+            }
+          ],
+          "name": "VehicleDynamicsService"
+        }
+      ],
+      "name": "vehicle",
+      "namespaces": [],
+      "structs": [
+        {
+          "members": [
+            {
+              "datatype": "double",
+              "name": "value",
+              "sample_alignment": 8,
+              "sample_size": 8
+            },
+            {
+              "datatype": "uint8",
+              "name": "quality",
+              "sample_alignment": 1,
+              "sample_size": 1
+            }
+          ],
+          "name": "SpeedSample"
+        },
+        {
+          "members": [
+            {
+              "datatype": "double",
+              "name": "target_speed",
+              "sample_alignment": 8,
+              "sample_size": 8
+            },
+            {
+              "datatype": "boolean",
+              "name": "enabled",
+              "sample_alignment": 1,
+              "sample_size": 1
+            }
+          ],
+          "name": "CruiseControlState"
+        },
+        {
+          "members": [
+            {
+              "datatype": "double",
+              "name": "value",
+              "sample_alignment": 8,
+              "sample_size": 8
+            }
+          ],
+          "name": "TargetSpeed"
+        },
+        {
+          "members": [
+            {
+              "datatype": "boolean",
+              "name": "value",
+              "sample_alignment": 1,
+              "sample_size": 1
+            }
+          ],
+          "name": "CruiseControlEnabled"
+        }
+      ]
+    }
+  ]
+}

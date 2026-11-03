@@ -1,0 +1,174 @@
+{
+  "global": {
+    "applicationID": 4002
+  },
+  "serviceInstances": [
+    {
+      "instanceSpecifier": "/Vehicle/Service1/Instance",
+      "instances": [
+        {
+          "allowedConsumer": {
+            "QM": [
+              4001,
+              4002,
+              0
+            ]
+          },
+          "allowedProvider": {
+            "QM": [
+              4001,
+              4002,
+              0
+            ]
+          },
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "speed",
+              "maxSubscribers": 3,
+              "numberOfSampleSlots": 30
+            },
+            {
+              "eventName": "cruise_control_enabled",
+              "maxSubscribers": 3,
+              "numberOfSampleSlots": 30
+            },
+            {
+              "eventName": "target_speed",
+              "maxSubscribers": 3,
+              "numberOfSampleSlots": 30
+            }
+          ],
+          "instanceId": 1
+        }
+      ],
+      "serviceTypeName": "vehicle::VehicleDynamicsService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      }
+    },
+    {
+      "instanceSpecifier": "/Vehicle/Service2/Instance",
+      "instances": [
+        {
+          "allowedConsumer": {
+            "QM": [
+              4001,
+              4002,
+              0
+            ]
+          },
+          "allowedProvider": {
+            "QM": [
+              4001,
+              4002,
+              0
+            ]
+          },
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "speed",
+              "maxSubscribers": 3,
+              "numberOfSampleSlots": 30
+            },
+            {
+              "eventName": "cruise_control_enabled",
+              "maxSubscribers": 3,
+              "numberOfSampleSlots": 30
+            },
+            {
+              "eventName": "target_speed",
+              "maxSubscribers": 3,
+              "numberOfSampleSlots": 30
+            }
+          ],
+          "instanceId": 2
+        }
+      ],
+      "serviceTypeName": "vehicle::VehicleDynamicsService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      }
+    },
+    {
+      "instanceSpecifier": "/Vehicle/Service3/Instance",
+      "instances": [
+        {
+          "allowedConsumer": {
+            "QM": [
+              4001,
+              4002,
+              0
+            ]
+          },
+          "allowedProvider": {
+            "QM": [
+              4001,
+              4002,
+              0
+            ]
+          },
+          "asil-level": "QM",
+          "binding": "SHM",
+          "events": [
+            {
+              "eventName": "speed",
+              "maxSubscribers": 3,
+              "numberOfSampleSlots": 30
+            },
+            {
+              "eventName": "cruise_control_enabled",
+              "maxSubscribers": 3,
+              "numberOfSampleSlots": 30
+            },
+            {
+              "eventName": "target_speed",
+              "maxSubscribers": 3,
+              "numberOfSampleSlots": 30
+            }
+          ],
+          "instanceId": 3
+        }
+      ],
+      "serviceTypeName": "vehicle::VehicleDynamicsService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      }
+    }
+  ],
+  "serviceTypes": [
+    {
+      "bindings": [
+        {
+          "binding": "SHM",
+          "events": [
+            {
+              "eventId": 1,
+              "eventName": "speed"
+            },
+            {
+              "eventId": 2,
+              "eventName": "cruise_control_enabled"
+            },
+            {
+              "eventId": 3,
+              "eventName": "target_speed"
+            }
+          ],
+          "serviceId": 6433
+        }
+      ],
+      "serviceTypeName": "vehicle::VehicleDynamicsService",
+      "version": {
+        "major": 1,
+        "minor": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+templates:
+  - file: "macros.jinja"
+    name: "macros"
+
+  - file: "mw_com_provider_metadata.rs.jinja"
+    name: "mw_com_provider_metadata"
+    suffix: "_provider_metadata.rs"
+    type: "rust_provider_metadata_srcs"
+
+  - file: "mw_com_provider_config.json.jinja"
+    name: "mw_com_provider_config"
+    suffix: "_provider_config.json"
+    type: "provider_config_json"
+
+  - file: "mw_com_provider_types.rs.jinja"
+    name: "mw_com_provider_types"
+    suffix: "_provider_types.rs"
+    type: "rust_score_payload_srcs"
+
+  - file: "mw_com_provider_interfaces.rs.jinja"
+    name: "mw_com_provider_interfaces"
+    suffix: "_provider_interfaces.rs"
+    type: "rust_score_interface_srcs"
+
+  - file: "mw_com_provider_instances.rs.jinja"
+    name: "mw_com_provider_instances"
+    suffix: "_provider_instances.rs"
+    type: "rust_score_instance_srcs"
+
+  - file: "mw_com_provider_lola_adapter.rs.jinja"
+    name: "mw_com_provider_lola_adapter"
+    suffix: "_provider_lola_adapter.rs"
+    type: "rust_score_lola_adapter_srcs"

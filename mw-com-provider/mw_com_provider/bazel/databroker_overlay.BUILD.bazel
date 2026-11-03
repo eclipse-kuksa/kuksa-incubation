@@ -1,0 +1,36 @@
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+package(default_visibility = ["//visibility:public"])
+
+# Provider-owned Bazel overlay for the optional mw::com Databroker plug-in.
+# This does not modify or migrate Databroker; keep the surface limited to
+# modules imported by mw_com_provider.
+
+rust_library(
+    name = "databroker",
+    srcs = [
+        "databroker/src/broker.rs",
+        "databroker/src/filter/filter_manager.rs",
+        "databroker/src/filter/mod.rs",
+        "databroker/src/glob.rs",
+        "databroker/src/permissions.rs",
+        "databroker/src/types.rs",
+        "//mw_com_provider/bazel:databroker_shim_lib.rs",
+    ],
+    crate_name = "databroker",
+    crate_root = "//mw_com_provider/bazel:databroker_shim_lib.rs",
+    edition = "2021",
+    proc_macro_deps = [
+        "@crates//:async-trait",
+    ],
+    deps = [
+        "@crates//:glob-match",
+        "@crates//:indexmap",
+        "@crates//:lazy_static",
+        "@crates//:regex",
+        "@crates//:tokio",
+        "@crates//:tokio-stream",
+        "@crates//:tracing",
+        "@crates//:uuid",
+    ],
+)

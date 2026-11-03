@@ -1,0 +1,39 @@
+{% set provider_config_type_map = {
+  'boolean': 'bool',
+} %}
+
+{% set rust_type_map = {
+  'boolean': 'bool',
+  'bool': 'bool',
+  'double': 'f64',
+  'float': 'f32',
+  'int8': 'i8',
+  'int16': 'i16',
+  'int32': 'i32',
+  'int64': 'i64',
+  'uint8': 'u8',
+  'uint16': 'u16',
+  'uint32': 'u32',
+  'uint64': 'u64',
+  'string': 'String',
+} %}
+
+{% macro to_provider_config_type(json_type) -%}
+{%- if json_type in provider_config_type_map -%}
+{{ provider_config_type_map[json_type] }}
+{%- else -%}
+{{ json_type }}
+{%- endif -%}
+{%- endmacro %}
+
+{% macro to_rust_type(json_type) -%}
+{%- if json_type in rust_type_map -%}
+{{ rust_type_map[json_type] }}
+{%- else -%}
+{{ json_type }}
+{%- endif -%}
+{%- endmacro %}
+
+{% macro is_builtin_json_type(json_type) -%}
+{%- if json_type in rust_type_map -%}true{%- else -%}false{%- endif -%}
+{%- endmacro %}

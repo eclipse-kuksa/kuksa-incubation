@@ -1,0 +1,15 @@
+[package]
+name = "bridge_ffi_lola"
+version = "0.1.0"
+edition = "2024"
+build = "build.rs"
+
+[lib]
+# Replace `../../../../communication` with the exact path to your S-Core communication checkout.
+path = "../../../../communication/score/mw/com/impl/rust/com-api/com-api-ffi-lola/bridge_ffi_lola.rs"
+
+[dependencies]
+bridge_ffi_rs = { path = "../bridge_ffi_rs" }
+sample_ptr_rs = { path = "../sample_ptr_rs" }
+# Replace `../../../../baselibs` with the exact path to your S-Core baselibs checkout.
+score_log = { path = "../../../../baselibs/score/log_rust/score_log" }
