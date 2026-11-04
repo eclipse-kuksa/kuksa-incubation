@@ -1,0 +1,49 @@
+/********************************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Apache License Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ ********************************************************************************/
+
+{% import "macros" as macros -%}
+
+use score_com::{CommData, Reloc};
+use std::default::Default;
+
+{% macro render_namespace(ns) -%}
+pub mod {{ ns.name }} {
+    use super::*;
+{% for en in ns.enumerations | default([]) %}
+    #[repr({{ macros.to_rust_type(en.datatype) }})]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+    pub enum {{ en.name }} {
+{% for lit in en.literals | default([]) %}
+        {% if loop.index0 == 0 %}#[default]{% endif %}
+        {{ lit.name }} = {{ lit.value }},
+{% endfor %}
+    }
+{% endfor %}
+{% for str in ns.structs | default([]) %}
+    #[repr(C)]
+    #[derive(Debug, Clone, PartialEq, Default, Reloc, CommData)]
+    #[comm_data(id = "{{ str.name }}")]
+    pub struct {{ str.name }} {
+{% for member in str.members | default([]) %}
+        pub {{ member.name }}: {% if member.arraysize is defined %}[{{ macros.to_rust_type(member.datatype) }}; {{ member.arraysize }}]{% else %}{{ macros.to_rust_type(member.datatype) }}{% endif %},
+{% endfor %}
+    }
+{% endfor %}
+{% for child in ns.namespaces | default([]) %}
+{{ render_namespace(child) }}
+{% endfor %}
+}
+{% endmacro %}
+{% for ns in json.namespaces | default([]) %}
+{{ render_namespace(ns) }}
+{% endfor %}
