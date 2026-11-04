@@ -27,6 +27,7 @@ Component |  Content | Comment/Status
 [KUKSA GO Client](kuksa_go_client)   | Example client written in the [GO](https://go.dev/) programming language for easy interaction with KUKSA Databroker and Server
 [ESP32 gRPC provider](gRPC-on-ESP32)   | Example for interacting with the [KUKSA Databroker](https://github.com/eclipse/kuksa.val/tree/master/kuksa_databroker) with ESP32-based microcontrollers
 [Zenoh Kuksa Provider](zenoh-kuksa-provider)   | Bridge component between the [KUKSA Databroker](https://github.com/eclipse/kuksa.val/tree/master/kuksa_databroker) and [Eclipse Zenoh](https://github.com/eclipse-zenoh/zenoh)
+[mw::com Provider](mw-com-provider/mw_com_provider) | Rust provider that bridges S-Core `mw::com` services and [KUKSA Databroker](https://github.com/eclipse/kuksa.val/tree/master/kuksa_databroker) VSS entries.
 [CAN Protocol Adapter](https://github.com/eclipse-kuksa/kuksa-incubation/tree/main/can-protocol-adapter)   | Rust module to communicate between CAN devices and the Kuksa DataBroker based on request/response mode.
 [Rosetta VSS](rosetta-vss) | AI-powered mapper from DBC / C / YAML signals to VSS paths using hybrid retrieval (Dense + BM25) with optional LLM-as-Judge.
 
